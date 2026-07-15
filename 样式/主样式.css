@@ -352,23 +352,6 @@ a.贴士链接:hover .贴士图标 {
     color: var(--暖色);
 }
 
-/* 查看详情提示 */
-.查看详情 {
-    display: inline-block;
-    margin-top: 12px;
-    font-size: 13px;
-    color: var(--主色);
-    font-weight: 600;
-    opacity: 0;
-    transform: translateX(-10px);
-    transition: all 0.3s ease;
-}
-
-.贴士卡片:hover .查看详情 {
-    opacity: 1;
-    transform: translateX(0);
-}
-
 /* ============================================
    解压游戏区域
    ============================================ */
