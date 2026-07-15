@@ -309,6 +309,18 @@ body {
     padding: 28px 24px;
     transition: all 0.3s ease;
     border-left: 4px solid transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 卡片作为链接时 */
+a.贴士链接 {
+    text-decoration: none;
+    color: inherit;
+}
+
+a.贴士链接:hover .贴士图标 {
+    transform: scale(1.1);
 }
 
 .贴士卡片:hover {
@@ -320,6 +332,7 @@ body {
 .贴士图标 {
     font-size: 40px;
     margin-bottom: 12px;
+    transition: transform 0.3s ease;
 }
 
 .贴士卡片 h3 {
@@ -332,10 +345,28 @@ body {
     font-size: 14px;
     color: #777;
     line-height: 1.7;
+    flex: 1;
 }
 
 .贴士卡片 strong {
     color: var(--暖色);
+}
+
+/* 查看详情提示 */
+.查看详情 {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--主色);
+    font-weight: 600;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+}
+
+.贴士卡片:hover .查看详情 {
+    opacity: 1;
+    transform: translateX(0);
 }
 
 /* ============================================
