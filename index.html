@@ -96,6 +96,7 @@
                 <button class="游戏标签" data-game="涂鸦">🎨 自由涂鸦</button>
                 <button class="游戏标签" data-game="呼吸">🌬️ 呼吸引导</button>
                 <button class="游戏标签" data-game="计数">🔢 疯狂点击</button>
+                <button class="游戏标签" data-game="宠物">🐱 宠物养成</button>
             </div>
 
             <!-- 游戏1：捏泡泡 -->
@@ -150,6 +151,45 @@
                 </div>
                 <div class="点击区域" id="点击区域">
                     <div class="点击大按钮" id="点击大按钮">👆<br>点我！</div>
+                </div>
+            </div>
+
+            <!-- 游戏5：宠物养成 -->
+            <div class="游戏面板" id="游戏-宠物" style="display:none;">
+                <div class="宠物容器">
+                    <div class="宠物展示" id="宠物展示">
+                        <div class="宠物表情" id="宠物表情">🐱</div>
+                        <div class="宠物名字" id="宠物名字">小团子</div>
+                        <div class="宠物气泡" id="宠物气泡">你好呀~</div>
+                    </div>
+                    <div class="宠物状态区">
+                        <div class="状态条">
+                            <span class="状态标签">🍖 饱腹</span>
+                            <div class="状态条背景"><div class="状态条进度 饱腹条" id="饱腹条"></div></div>
+                            <span class="状态数值" id="饱腹值">100</span>
+                        </div>
+                        <div class="状态条">
+                            <span class="状态标签">😊 开心</span>
+                            <div class="状态条背景"><div class="状态条进度 开心条" id="开心条"></div></div>
+                            <span class="状态数值" id="开心值">100</span>
+                        </div>
+                        <div class="状态条">
+                            <span class="状态标签">⚡ 精力</span>
+                            <div class="状态条背景"><div class="状态条进度 精力条" id="精力条"></div></div>
+                            <span class="状态数值" id="精力值">100</span>
+                        </div>
+                    </div>
+                    <div class="宠物操作">
+                        <button class="宠物按钮" id="喂食按钮" title="喂食">🍖<br>喂食</button>
+                        <button class="宠物按钮" id="玩耍按钮" title="玩耍">🎾<br>玩耍</button>
+                        <button class="宠物按钮" id="睡觉按钮" title="睡觉">💤<br>睡觉</button>
+                        <button class="宠物按钮" id="改名按钮" title="改名">✏️<br>改名</button>
+                    </div>
+                    <div class="改名区域" id="改名区域" style="display:none;">
+                        <input type="text" id="改名输入" placeholder="给你的宠物取个名字" maxlength="8">
+                        <button class="按钮 小按钮" id="确认改名">确定</button>
+                        <button class="按钮 小按钮" id="取消改名">取消</button>
+                    </div>
                 </div>
             </div>
         </div>

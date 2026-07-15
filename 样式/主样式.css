@@ -577,6 +577,171 @@ a.贴士链接:hover .贴士图标 {
     opacity: 0.6;
 }
 
+/* ---- 宠物养成 ---- */
+.宠物容器 {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.宠物展示 {
+    padding: 30px 20px 20px;
+    background: linear-gradient(180deg, #e8f4f5 0%, #fdfdf8 100%);
+    border-radius: 16px;
+    margin-bottom: 20px;
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.宠物表情 {
+    font-size: 80px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    user-select: none;
+    animation: 宠物漂浮 3s ease-in-out infinite;
+}
+
+.宠物表情:active {
+    transform: scale(1.15);
+}
+
+@keyframes 宠物漂浮 {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+}
+
+.宠物名字 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #3d6b6f;
+    margin-top: 8px;
+}
+
+.宠物气泡 {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #555;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    opacity: 0;
+    transform: translateY(5px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.宠物气泡.显示 {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.宠物状态区 {
+    margin-bottom: 20px;
+}
+
+.状态条 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.状态标签 {
+    width: 55px;
+    font-size: 14px;
+    color: #555;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.状态条背景 {
+    flex: 1;
+    height: 10px;
+    background: #e8e8e8;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.状态条进度 {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+.饱腹条 { background: linear-gradient(90deg, #f0a58f, #e8876b); }
+.开心条 { background: linear-gradient(90deg, #f7d66b, #f0c030); }
+.精力条 { background: linear-gradient(90deg, #6db3a8, #4f9da6); }
+
+.状态数值 {
+    width: 30px;
+    font-size: 13px;
+    color: #999;
+    text-align: left;
+    flex-shrink: 0;
+}
+
+.宠物操作 {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.宠物按钮 {
+    width: 72px;
+    padding: 14px 8px;
+    border: 2px solid #dde8e8;
+    border-radius: 16px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: inherit;
+    color: #555;
+    transition: all 0.2s ease;
+    line-height: 1.3;
+}
+
+.宠物按钮:hover {
+    border-color: var(--主色);
+    background: #f5fafa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.宠物按钮:active {
+    transform: scale(0.93);
+}
+
+.改名区域 {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.改名区域 input {
+    padding: 8px 14px;
+    border: 2px solid #dde8e8;
+    border-radius: 20px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    width: 180px;
+}
+
+.改名区域 input:focus {
+    border-color: var(--主色);
+}
+
 /* ============================================
    放松音频区域
    ============================================ */

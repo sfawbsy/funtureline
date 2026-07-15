@@ -488,6 +488,7 @@ document.addEventListener('DOMContentLoaded', function () {
     初始化涂鸦画布();
     初始化呼吸引导();
     初始化点击游戏();
+    初始化宠物游戏();
     初始化音频播放();
     初始化名言切换();
     初始化背景音乐();
@@ -925,4 +926,168 @@ function 初始化背景音乐() {
             clearInterval(检查定时器);
         }
     }, 500);
+}
+
+
+/* ==========================================
+   11. 宠物养成游戏
+   ========================================== */
+function 初始化宠物游戏() {
+    var 面板 = document.getElementById('游戏-宠物');
+    if (!面板) return;
+
+    var 表情元素 = document.getElementById('宠物表情');
+    var 名字元素 = document.getElementById('宠物名字');
+    var 气泡元素 = document.getElementById('宠物气泡');
+
+    var 饱腹条 = document.getElementById('饱腹条');
+    var 开心条 = document.getElementById('开心条');
+    var 精力条 = document.getElementById('精力条');
+    var 饱腹值 = document.getElementById('饱腹值');
+    var 开心值 = document.getElementById('开心值');
+    var 精力值 = document.getElementById('精力值');
+
+    // 从本地存储恢复或初始化
+    var 数据 = 读取存档();
+    var 饱腹 = 数据.饱腹;
+    var 开心 = 数据.开心;
+    var 精力 = 数据.精力;
+    var 宠物名 = 数据.名字;
+
+    function 读取存档() {
+        try {
+            var raw = localStorage.getItem('pet_data');
+            if (raw) return JSON.parse(raw);
+        } catch(e) {}
+        return { 饱腹: 100, 开心: 100, 精力: 100, 名字: '小团子' };
+    }
+
+    function 保存存档() {
+        try {
+            localStorage.setItem('pet_data', JSON.stringify({
+                饱腹: 饱腹, 开心: 开心, 精力: 精力, 名字: 宠物名
+            }));
+        } catch(e) {}
+    }
+
+    function 刷新UI() {
+        饱腹条.style.width = 饱腹 + '%';
+        开心条.style.width = 开心 + '%';
+        精力条.style.width = 精力 + '%';
+        饱腹值.textContent = 饱腹;
+        开心值.textContent = 开心;
+        精力值.textContent = 精力;
+        名字元素.textContent = 宠物名;
+        更新表情();
+    }
+
+    function 更新表情() {
+        var 平均 = (饱腹 + 开心 + 精力) / 3;
+        if (平均 >= 80) 表情元素.textContent = '😸';
+        else if (平均 >= 60) 表情元素.textContent = '😺';
+        else if (平均 >= 40) 表情元素.textContent = '😿';
+        else if (平均 >= 20) 表情元素.textContent = '😾';
+        else 表情元素.textContent = '💀';
+    }
+
+    function 显示气泡(文字) {
+        气泡元素.textContent = 文字;
+        气泡元素.classList.add('显示');
+        clearTimeout(气泡元素._timeout);
+        气泡元素._timeout = setTimeout(function () {
+            气泡元素.classList.remove('显示');
+        }, 2000);
+    }
+
+    // 喂食
+    document.getElementById('喂食按钮').addEventListener('click', function () {
+        if (精力 <= 5) { 显示气泡('太累了，先睡会儿吧 💤'); return; }
+        饱腹 = Math.min(100, 饱腹 + 25);
+        开心 = Math.min(100, 开心 + 5);
+        精力 = Math.max(0, 精力 - 5);
+        保存存档(); 刷新UI();
+        显示气泡('好好吃！再来一点~ 🍖');
+        音效引擎.播放点击音();
+    });
+
+    // 玩耍
+    document.getElementById('玩耍按钮').addEventListener('click', function () {
+        if (精力 <= 10) { 显示气泡('没力气了，想休息... 😴'); return; }
+        if (饱腹 <= 10) { 显示气泡('好饿，先吃点东西吧 🍖'); return; }
+        开心 = Math.min(100, 开心 + 30);
+        精力 = Math.max(0, 精力 - 15);
+        饱腹 = Math.max(0, 饱腹 - 8);
+        保存存档(); 刷新UI();
+        var 反应 = ['好开心！', '再玩一会儿~', '嘻嘻！', '你是我最好的朋友 ❤️'];
+        显示气泡(反应[Math.floor(Math.random() * 反应.length)]);
+        音效引擎.播放泡泡音();
+    });
+
+    // 睡觉
+    document.getElementById('睡觉按钮').addEventListener('click', function () {
+        精力 = Math.min(100, 精力 + 50);
+        饱腹 = Math.max(0, 饱腹 - 10);
+        开心 = Math.min(100, 开心 + 10);
+        保存存档(); 刷新UI();
+        显示气泡('zzZ... 好舒服 💤');
+        音效引擎.播放吸气音();
+    });
+
+    // 点击宠物
+    表情元素.addEventListener('click', function () {
+        var 平均 = (饱腹 + 开心 + 精力) / 3;
+        if (平均 >= 70) {
+            var 反应列表 = ['喵~', '呼噜呼噜...', '蹭蹭你~', '❤️'];
+            var 反应 = 反应列表[Math.floor(Math.random() * 反应列表.length)];
+            显示气泡(反应);
+            开心 = Math.min(100, 开心 + 3);
+            音效引擎.播放点击音();
+        } else if (平均 >= 30) {
+            显示气泡('嗯...不太舒服');
+        } else {
+            显示气泡('救救我... 😢');
+        }
+        保存存档(); 刷新UI();
+    });
+
+    // 改名
+    document.getElementById('改名按钮').addEventListener('click', function () {
+        var 区域 = document.getElementById('改名区域');
+        var 输入 = document.getElementById('改名输入');
+        输入.value = 宠物名;
+        区域.style.display = 'flex';
+        输入.focus();
+    });
+
+    document.getElementById('确认改名').addEventListener('click', function () {
+        var 新名字 = document.getElementById('改名输入').value.trim();
+        if (新名字) {
+            宠物名 = 新名字;
+            保存存档(); 刷新UI();
+            显示气泡('我叫' + 宠物名 + '！请多关照~');
+        }
+        document.getElementById('改名区域').style.display = 'none';
+    });
+
+    document.getElementById('取消改名').addEventListener('click', function () {
+        document.getElementById('改名区域').style.display = 'none';
+    });
+
+    function 计时扣除() {
+        if (面板.style.display === 'none') return;
+        饱腹 = Math.max(0, 饱腹 - 1);
+        if (饱腹 <= 15) 开心 = Math.max(0, 开心 - 1);
+        精力 = Math.max(0, 精力 - 0.5);
+        保存存档(); 刷新UI();
+
+        if (饱腹 <= 8) 显示气泡('好饿... 🍖');
+        if (开心 <= 8) 显示气泡('好无聊... 🎾');
+        if (精力 <= 5) 显示气泡('好困... 💤');
+    }
+
+    // 每 5 秒扣除一次
+    setInterval(计时扣除, 5000);
+
+    刷新UI();
+    显示气泡('你好呀~ 陪我玩吧！');
 }
