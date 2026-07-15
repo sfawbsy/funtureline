@@ -202,6 +202,10 @@ body {
     border-color: var(--主色);
 }
 
+.音乐按钮.播放中[title*="暂停"] {
+    /* 播放中，允许暂停 */
+}
+
 @keyframes 音符跳动 {
     0%, 100% { transform: scale(1); }
     50%      { transform: scale(1.15); }

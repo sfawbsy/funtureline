@@ -334,15 +334,16 @@ var 音效引擎 = (function () {
 
 
 /* ==========================================
-   0.5 背景音乐引擎 — 柔和环境氛围音
+   0.5 背景音乐引擎 — 柔和环境氛围音，进入即播
    ========================================== */
 var 背景音乐 = (function () {
     var 正在播放中 = false;
+    var 已暂停 = false;
     var 音符定时器 = null;
     var 当前音符组 = [];
-    var 全局音量 = 0.06; // 极低音量，若有若无
+    var 全局音量 = 0.06;
+    var 已尝试自动播放 = false;
 
-    // 和弦进行（频率 Hz）：Am → F → C → G
     var 和弦列表 = [
         [220.0, 261.6, 329.6, 440.0],  // Am
         [174.6, 220.0, 261.6, 349.2],  // F
@@ -351,7 +352,6 @@ var 背景音乐 = (function () {
     ];
     var 当前和弦 = 0;
 
-    /** 停止当前音符组 */
     function 清除音符() {
         当前音符组.forEach(function (osc) {
             try { osc.stop(); } catch (e) { }
@@ -359,7 +359,6 @@ var 背景音乐 = (function () {
         当前音符组 = [];
     }
 
-    /** 以极柔和的方式开始一个和弦 */
     function 弹奏和弦(和弦) {
         var ctx = 音效引擎.获取上下文();
         if (!ctx) return;
@@ -367,16 +366,11 @@ var 背景音乐 = (function () {
         和弦.forEach(function (频率, 索引) {
             var 振荡器 = ctx.createOscillator();
             var 增益 = ctx.createGain();
-            // 混合三角波和正弦波模拟软垫音色
             振荡器.type = 索引 % 2 === 0 ? 'sine' : 'triangle';
-            // 略微失谐增加厚度
             振荡器.frequency.setValueAtTime(频率 + (Math.random() - 0.5) * 1.5, 起始);
-            // 缓慢淡入
             增益.gain.setValueAtTime(0.0001, 起始);
             增益.gain.exponentialRampToValueAtTime(全局音量 * (0.6 + 索引 * 0.15), 起始 + 3);
-            // 保持
             增益.gain.setValueAtTime(全局音量 * (0.6 + 索引 * 0.15), 起始 + 6.5);
-            // 缓慢淡出
             增益.gain.exponentialRampToValueAtTime(0.0001, 起始 + 9);
             振荡器.connect(增益);
             增益.connect(ctx.destination);
@@ -386,7 +380,6 @@ var 背景音乐 = (function () {
         });
     }
 
-    /** 播放下一个和弦 */
     function 下一个和弦() {
         if (!正在播放中) return;
         清除音符();
@@ -395,32 +388,92 @@ var 背景音乐 = (function () {
         音符定时器 = setTimeout(下一个和弦, 7800);
     }
 
-    /** 开始播放 */
     function 开始() {
         if (正在播放中) return;
         正在播放中 = true;
+        已暂停 = false;
         当前和弦 = Math.floor(Math.random() * 和弦列表.length);
         下一个和弦();
         console.log('🎵 背景音乐开始');
     }
 
-    /** 停止播放 */
-    function 停止() {
+    function 暂停() {
+        if (!正在播放中) return;
         正在播放中 = false;
+        已暂停 = true;
         clearTimeout(音符定时器);
         清除音符();
-        console.log('🔇 背景音乐停止');
+        console.log('⏸ 背景音乐暂停');
     }
 
-    /** 切换 */
-    function 切换() {
-        if (正在播放中) { 停止(); return false; }
-        else { 开始(); return true; }
+    function 恢复() {
+        if (正在播放中 || !已暂停) return;
+        开始();
+    }
+
+    function 切换暂停恢复() {
+        if (正在播放中) {
+            暂停();
+            return 'paused';
+        } else if (已暂停) {
+            恢复();
+            return 'playing';
+        } else {
+            开始();
+            return 'playing';
+        }
+    }
+
+    /** 尝试自动播放 — 页面加载时调用 */
+    function 尝试自动播放() {
+        if (已尝试自动播放) return;
+        已尝试自动播放 = true;
+        // 先尝试直接播放
+        var ctx = 音效引擎.获取上下文();
+        if (ctx && ctx.state === 'running') {
+            开始();
+            console.log('🎵 背景音乐自动播放成功');
+            return true;
+        }
+        // 浏览器阻止了，等首次用户交互再播
+        console.log('⏳ 等待用户交互后自动播放...');
+        等待用户交互();
+        return false;
+    }
+
+    /** 在页面上监听首次用户交互，然后自动开始 */
+    function 等待用户交互() {
+        function 启动() {
+            var ctx = 音效引擎.获取上下文();
+            if (ctx && ctx.state === 'suspended') {
+                ctx.resume().then(function () {
+                    开始();
+                });
+            } else {
+                开始();
+            }
+            // 移除监听
+            ['click', 'touchstart', 'scroll', 'keydown'].forEach(function (事件) {
+                document.removeEventListener(事件, 启动, { once: true });
+            });
+        }
+        ['click', 'touchstart', 'scroll', 'keydown'].forEach(function (事件) {
+            document.addEventListener(事件, 启动, { once: true });
+        });
     }
 
     function 是否播放中() { return 正在播放中; }
+    function 是否已暂停() { return 已暂停; }
 
-    return { 开始: 开始, 停止: 停止, 切换: 切换, 是否播放中: 是否播放中 };
+    return {
+        开始: 开始,
+        暂停: 暂停,
+        恢复: 恢复,
+        切换暂停恢复: 切换暂停恢复,
+        是否播放中: 是否播放中,
+        是否已暂停: 是否已暂停,
+        尝试自动播放: 尝试自动播放
+    };
 })();
 
 
@@ -438,6 +491,9 @@ document.addEventListener('DOMContentLoaded', function () {
     初始化音频播放();
     初始化名言切换();
     初始化背景音乐();
+
+    // ⬇ 页面加载即尝试自动播放背景音乐
+    背景音乐.尝试自动播放();
 });
 
 
@@ -834,22 +890,39 @@ function 初始化背景音乐() {
     var 按钮 = document.getElementById('背景音乐按钮');
     if (!按钮) return;
 
-    // 更新按钮图标
-    function 更新图标(播放中) {
-        按钮.innerHTML = 播放中 ? '🎵' : '🎵';
-        按钮.title = 播放中 ? '点击关闭背景音乐' : '点击开启背景音乐';
-        if (播放中) {
+    function 更新图标() {
+        if (背景音乐.是否播放中()) {
+            // 正在播放中 — 显示播放中图标
+            按钮.innerHTML = '🎵';
+            按钮.title = '点击暂停背景音乐';
             按钮.classList.add('播放中');
-        } else {
+        } else if (背景音乐.是否已暂停()) {
+            // 已暂停 — 显示暂停图标提示
+            按钮.innerHTML = '🔇';
+            按钮.title = '点击恢复背景音乐';
             按钮.classList.remove('播放中');
+        } else {
+            // 从未播放过 — 初始状态
+            按钮.innerHTML = '🎵';
+            按钮.title = '背景音乐加载中...';
+            按钮.classList.add('播放中');
         }
     }
 
     按钮.addEventListener('click', function () {
-        var 结果 = 背景音乐.切换();
-        更新图标(结果);
+        背景音乐.切换暂停恢复();
+        更新图标();
     });
 
-    // 初始状态
-    更新图标(false);
+    // 初始状态设为播放中（等待自动播放）
+    按钮.classList.add('播放中');
+    按钮.title = '背景音乐加载中...';
+
+    // 定期检查自动播放状态
+    var 检查定时器 = setInterval(function () {
+        if (背景音乐.是否播放中()) {
+            更新图标();
+            clearInterval(检查定时器);
+        }
+    }, 500);
 }
