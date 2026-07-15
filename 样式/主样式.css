@@ -308,7 +308,7 @@ body {
     border-radius: 14px;
     padding: 28px 24px;
     transition: all 0.3s ease;
-    border-left: 4px solid transparent;
+    border-left: 4px solid #e8efef;
     display: flex;
     flex-direction: column;
 }
@@ -326,7 +326,7 @@ a.贴士链接:hover .贴士图标 {
 .贴士卡片:hover {
     transform: translateY(-4px);
     box-shadow: var(--阴影悬停);
-    border-left-color: var(--主色);
+    border-left-color: #d5e8e8;
 }
 
 .贴士图标 {
