@@ -11,11 +11,24 @@
    ========================================== */
 var 音效引擎 = (function () {
     var 音频上下文 = null;
+    var 已初始化 = false;
 
-    /** 获取或创建音频上下文（需用户交互后才能创建） */
+    /** 获取或创建音频上下文，并确保恢复运行 */
     function 获取上下文() {
         if (!音频上下文) {
-            音频上下文 = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                音频上下文 = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('✅ AudioContext 已创建，采样率:', 音频上下文.sampleRate, '状态:', 音频上下文.state);
+            } catch(e) {
+                console.error('❌ 无法创建 AudioContext:', e);
+                return null;
+            }
+        }
+        // 关键：如果浏览器挂起了音频，恢复它
+        if (音频上下文.state === 'suspended') {
+            音频上下文.resume().then(function() {
+                console.log('🔊 AudioContext 已恢复');
+            });
         }
         return 音频上下文;
     }
@@ -23,80 +36,89 @@ var 音效引擎 = (function () {
     /** 播放一个简单的音调 */
     function 播放音调(频率, 类型, 时长, 音量, 起始时间) {
         var ctx = 获取上下文();
+        if (!ctx) return;
         var 起始 = 起始时间 || ctx.currentTime;
         var 振荡器 = ctx.createOscillator();
         var 增益 = ctx.createGain();
         振荡器.type = 类型 || 'sine';
         振荡器.frequency.setValueAtTime(频率, 起始);
-        增益.gain.setValueAtTime(音量 || 0.3, 起始);
-        增益.gain.exponentialRampToValueAtTime(0.001, 起始 + 时长);
+        增益.gain.setValueAtTime(音量 || 0.5, 起始);
+        增益.gain.exponentialRampToValueAtTime(0.0001, 起始 + 时长);
         振荡器.connect(增益);
         增益.connect(ctx.destination);
         振荡器.start(起始);
         振荡器.stop(起始 + 时长 + 0.05);
     }
 
-    /** 泡泡破裂音效 */
+    /** 泡泡破裂音效 — 响亮清脆 */
     function 播放泡泡音() {
         var ctx = 获取上下文();
+        if (!ctx) return;
         var 起始 = ctx.currentTime;
-        // 高频短促音 + 低频共鸣
-        播放音调(800 + Math.random() * 400, 'sine', 0.08, 0.25, 起始);
-        播放音调(200 + Math.random() * 100, 'sine', 0.12, 0.15, 起始 + 0.02);
+        console.log('🫧 泡泡音播放中...');
+        // 高频短促音
+        播放音调(900 + Math.random() * 500, 'sine', 0.1, 0.5, 起始);
+        播放音调(250 + Math.random() * 150, 'triangle', 0.15, 0.35, 起始 + 0.01);
         // 噪音爆破感
-        var 缓冲大小 = ctx.sampleRate * 0.06;
+        var 缓冲大小 = Math.floor(ctx.sampleRate * 0.08);
         var 缓冲 = ctx.createBuffer(1, 缓冲大小, ctx.sampleRate);
         var 数据 = 缓冲.getChannelData(0);
         for (var i = 0; i < 缓冲大小; i++) {
-            数据[i] = (Math.random() * 2 - 1) * Math.exp(-i / (缓冲大小 * 0.2));
+            数据[i] = (Math.random() * 2 - 1) * Math.exp(-i / (缓冲大小 * 0.15));
         }
         var 噪音源 = ctx.createBufferSource();
         var 噪音增益 = ctx.createGain();
         噪音源.buffer = 缓冲;
-        噪音增益.gain.setValueAtTime(0.2, 起始);
-        噪音增益.gain.exponentialRampToValueAtTime(0.001, 起始 + 0.06);
+        噪音增益.gain.setValueAtTime(0.45, 起始);
+        噪音增益.gain.exponentialRampToValueAtTime(0.0001, 起始 + 0.08);
         噪音源.connect(噪音增益);
         噪音增益.connect(ctx.destination);
         噪音源.start(起始);
     }
 
-    /** 点击反馈音 */
+    /** 点击反馈音 — 清脆短促 */
     function 播放点击音() {
         var ctx = 获取上下文();
+        if (!ctx) return;
         var 起始 = ctx.currentTime;
-        播放音调(660, 'sine', 0.05, 0.18, 起始);
+        播放音调(880, 'sine', 0.06, 0.4, 起始);
+        播放音调(1320, 'sine', 0.04, 0.2, 起始 + 0.01);
     }
 
-    /** 呼吸引导音 - 上升音 */
+    /** 呼吸引导音 — 吸气上升 */
     function 播放吸气音() {
         var ctx = 获取上下文();
+        if (!ctx) return;
         var 起始 = ctx.currentTime;
+        console.log('🌬️ 吸气音播放中...');
         var 振荡器 = ctx.createOscillator();
         var 增益 = ctx.createGain();
         振荡器.type = 'sine';
-        振荡器.frequency.setValueAtTime(180, 起始);
-        振荡器.frequency.linearRampToValueAtTime(360, 起始 + 3.8);
-        增益.gain.setValueAtTime(0.12, 起始);
-        增益.gain.setValueAtTime(0.12, 起始 + 3.5);
-        增益.gain.exponentialRampToValueAtTime(0.001, 起始 + 4);
+        振荡器.frequency.setValueAtTime(200, 起始);
+        振荡器.frequency.linearRampToValueAtTime(450, 起始 + 3.8);
+        增益.gain.setValueAtTime(0.35, 起始);
+        增益.gain.setValueAtTime(0.35, 起始 + 3.5);
+        增益.gain.exponentialRampToValueAtTime(0.0001, 起始 + 4);
         振荡器.connect(增益);
         增益.connect(ctx.destination);
         振荡器.start(起始);
         振荡器.stop(起始 + 4.1);
     }
 
-    /** 呼吸引导音 - 下降音 */
+    /** 呼吸引导音 — 呼气下降 */
     function 播放呼气音() {
         var ctx = 获取上下文();
+        if (!ctx) return;
         var 起始 = ctx.currentTime;
+        console.log('💨 呼气音播放中...');
         var 振荡器 = ctx.createOscillator();
         var 增益 = ctx.createGain();
         振荡器.type = 'sine';
-        振荡器.frequency.setValueAtTime(360, 起始);
-        振荡器.frequency.linearRampToValueAtTime(120, 起始 + 7.8);
-        增益.gain.setValueAtTime(0.15, 起始);
-        增益.gain.setValueAtTime(0.15, 起始 + 7.5);
-        增益.gain.exponentialRampToValueAtTime(0.001, 起始 + 8);
+        振荡器.frequency.setValueAtTime(450, 起始);
+        振荡器.frequency.linearRampToValueAtTime(150, 起始 + 7.8);
+        增益.gain.setValueAtTime(0.4, 起始);
+        增益.gain.setValueAtTime(0.4, 起始 + 7.5);
+        增益.gain.exponentialRampToValueAtTime(0.0001, 起始 + 8);
         振荡器.connect(增益);
         增益.connect(ctx.destination);
         振荡器.start(起始);
@@ -104,22 +126,22 @@ var 音效引擎 = (function () {
     }
 
     /* ---- 环境音效生成器 ---- */
-    var 环境音节点 = null;  // 当前播放的环境音
+    var 环境音节点 = null;
     var 环境音类型 = null;
 
-    /** 停止当前环境音 */
     function 停止环境音() {
         if (环境音节点) {
             try { 环境音节点.stop(); } catch (e) { }
             环境音节点 = null;
             环境音类型 = null;
+            console.log('🔇 环境音已停止');
         }
     }
 
-    /** 生成白噪音缓冲 */
     function 创建噪音缓冲(时长) {
         var ctx = 获取上下文();
-        var 大小 = ctx.sampleRate * 时长;
+        if (!ctx) return null;
+        var 大小 = Math.floor(ctx.sampleRate * 时长);
         var 缓冲 = ctx.createBuffer(1, 大小, ctx.sampleRate);
         var 数据 = 缓冲.getChannelData(0);
         for (var i = 0; i < 大小; i++) {
@@ -128,16 +150,14 @@ var 音效引擎 = (function () {
         return 缓冲;
     }
 
-    /** 创建带滤波的噪音源 */
     function 创建噪音源(低频, 高频, 音量值) {
         var ctx = 获取上下文();
+        if (!ctx) return null;
         var 源 = ctx.createBufferSource();
-        源.buffer = 创建噪音缓冲(8);
+        var buf = 创建噪音缓冲(4);
+        if (!buf) return null;
+        源.buffer = buf;
         源.loop = true;
-        var 滤波器 = ctx.createBiquadFilter();
-        滤波器.type = 'bandpass';
-        滤波器.frequency.value = (低频 + 高频) / 2;
-        滤波器.Q.value = 0.5;
         var 低切 = ctx.createBiquadFilter();
         低切.type = 'highpass';
         低切.frequency.value = 低频;
@@ -146,79 +166,77 @@ var 音效引擎 = (function () {
         高切.frequency.value = 高频;
         var 增益 = ctx.createGain();
         增益.gain.setValueAtTime(0, ctx.currentTime);
-        增益.gain.linearRampToValueAtTime(音量值, ctx.currentTime + 0.5);
+        增益.gain.linearRampToValueAtTime(音量值, ctx.currentTime + 0.3);
         源.connect(低切);
-        低切.connect(滤波器);
-        滤波器.connect(高切);
+        低切.connect(高切);
         高切.connect(增益);
         增益.connect(ctx.destination);
         return { 源: 源, 增益: 增益 };
     }
 
-    /** 雨声 */
+    /** 雨声 — 加了更响的雨滴 */
     function 播放雨声() {
         停止环境音();
-        var 雨声 = 创建噪音源(300, 4000, 0.25);
-        // 加一些低频滴答
+        var 主雨声 = 创建噪音源(200, 5000, 0.5);
+        if (!主雨声) return;
         var ctx = 获取上下文();
+        // 低频滴答
         var 滴答源 = ctx.createBufferSource();
-        滴答源.buffer = 创建噪音缓冲(1);
+        滴答源.buffer = 创建噪音缓冲(0.6);
         滴答源.loop = true;
         var 滴答滤波 = ctx.createBiquadFilter();
         滴答滤波.type = 'bandpass';
-        滴答滤波.frequency.value = 1500;
-        滴答滤波.Q.value = 2;
+        滴答滤波.frequency.value = 2000;
+        滴答滤波.Q.value = 1.5;
         var 滴答增益 = ctx.createGain();
         滴答增益.gain.setValueAtTime(0, ctx.currentTime);
-        滴答增益.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.5);
+        滴答增益.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.3);
         滴答源.connect(滴答滤波);
         滴答滤波.connect(滴答增益);
         滴答增益.connect(ctx.destination);
-        雨声.源.start();
+        主雨声.源.start();
         滴答源.start();
         环境音类型 = 'rain';
-        环境音节点 = { stop: function () { 雨声.源.stop(); 滴答源.stop(); } };
+        环境音节点 = { stop: function () { 主雨声.源.stop(); 滴答源.stop(); } };
+        console.log('🌧️ 雨声开始播放');
     }
 
     /** 海浪声 */
     function 播放海浪() {
         停止环境音();
+        var 低频 = 创建噪音源(30, 350, 0.55);
+        if (!低频) return;
         var ctx = 获取上下文();
-        // 低频隆隆声
-        var 低频 = 创建噪音源(40, 300, 0.3);
-        // 添加 LFO 模拟潮汐
         var lfo = ctx.createOscillator();
         var lfo增益 = ctx.createGain();
         lfo.type = 'sine';
-        lfo.frequency.value = 0.12; // 很慢的周期
-        lfo增益.gain.value = 0.1;
+        lfo.frequency.value = 0.1;
+        lfo增益.gain.value = 0.2;
         lfo.connect(lfo增益);
-        低频.增益.gain.setValueAtTime(0.2, ctx.currentTime);
         lfo增益.connect(低频.增益.gain);
         lfo.start();
         低频.源.start();
         环境音类型 = 'ocean';
         环境音节点 = { stop: function () { 低频.源.stop(); lfo.stop(); } };
+        console.log('🌊 海浪声开始播放');
     }
 
     /** 森林鸟鸣 */
     function 播放森林() {
         停止环境音();
+        var 背景 = 创建噪音源(150, 2500, 0.18);
+        if (!背景) return;
         var ctx = 获取上下文();
-        // 背景柔和的噪音（树叶沙沙）
-        var 背景 = 创建噪音源(200, 2000, 0.08);
         背景.源.start();
 
-        // 随机鸟叫
         var 鸟叫定时器 = setInterval(function () {
             if (环境音类型 !== 'forest') { clearInterval(鸟叫定时器); return; }
-            var 频率 = 1800 + Math.random() * 2500;
+            var 频率 = 2000 + Math.random() * 3000;
             var 起始 = ctx.currentTime;
-            // 两段哨音
-            播放音调(频率, 'sine', 0.1, 0.08, 起始);
-            播放音调(频率 * 1.3, 'sine', 0.1, 0.06, 起始 + 0.08);
-            播放音调(频率 * 0.9, 'sine', 0.08, 0.05, 起始 + 0.14);
-        }, 800 + Math.random() * 2000);
+            播放音调(频率, 'sine', 0.12, 0.2, 起始);
+            播放音调(频率 * 1.25, 'sine', 0.1, 0.15, 起始 + 0.07);
+            播放音调(频率 * 0.85, 'sine', 0.08, 0.12, 起始 + 0.12);
+        }, 600 + Math.random() * 1800);
 
         环境音类型 = 'forest';
         环境音节点 = {
@@ -227,51 +245,51 @@ var 音效引擎 = (function () {
                 clearInterval(鸟叫定时器);
             }
         };
+        console.log('🌲 森林鸟鸣开始播放');
     }
 
-    /** 轻柔钢琴循环 */
-    var 钢琴音符 = [261, 329, 349, 392, 440, 523, 587, 659]; // C大调音阶
+    /** 轻柔钢琴 */
+    var 钢琴音符 = [261.6, 293.7, 329.6, 349.2, 392.0, 440.0, 523.3, 587.3, 659.3];
     var 钢琴索引 = 0;
     var 钢琴定时器 = null;
 
     function 播放钢琴() {
         停止环境音();
         var ctx = 获取上下文();
+        if (!ctx) return;
 
         function 弹奏音符() {
             if (环境音类型 !== 'piano') return;
             var 频率 = 钢琴音符[钢琴索引 % 钢琴音符.length];
             钢琴索引++;
             var 起始 = ctx.currentTime;
-            // 钢琴音色：用多个泛音模拟
             var 基音增益 = ctx.createGain();
-            基音增益.gain.setValueAtTime(0.12, 起始);
-            基音增益.gain.exponentialRampToValueAtTime(0.001, 起始 + 2.5);
+            基音增益.gain.setValueAtTime(0.3, 起始);
+            基音增益.gain.exponentialRampToValueAtTime(0.0001, 起始 + 3);
             var 振荡器 = ctx.createOscillator();
-            振荡器.type = 'sine';
+            振荡器.type = 'triangle';
             振荡器.frequency.setValueAtTime(频率, 起始);
             振荡器.connect(基音增益);
             基音增益.connect(ctx.destination);
             振荡器.start(起始);
-            振荡器.stop(起始 + 2.6);
-            // 泛音
+            振荡器.stop(起始 + 3.1);
+            // 八度泛音增加亮度
             var 泛音增益 = ctx.createGain();
-            泛音增益.gain.setValueAtTime(0.04, 起始);
-            泛音增益.gain.exponentialRampToValueAtTime(0.001, 起始 + 1.5);
+            泛音增益.gain.setValueAtTime(0.08, 起始);
+            泛音增益.gain.exponentialRampToValueAtTime(0.0001, 起始 + 2);
             var 泛音 = ctx.createOscillator();
             泛音.type = 'sine';
-            泛音.frequency.setValueAtTime(频率 * 1.5, 起始);
+            泛音.frequency.setValueAtTime(频率 * 2, 起始);
             泛音.connect(泛音增益);
             泛音增益.connect(ctx.destination);
             泛音.start(起始);
-            泛音.stop(起始 + 1.6);
+            泛音.stop(起始 + 2.1);
         }
 
         弹奏音符();
         钢琴定时器 = setInterval(function () {
-            var 间隔 = 1800 + Math.random() * 2500;
             setTimeout(弹奏音符, 0);
-        }, 2200);
+        }, 2000);
 
         环境音类型 = 'piano';
         环境音节点 = {
@@ -279,12 +297,12 @@ var 音效引擎 = (function () {
                 clearInterval(钢琴定时器);
             }
         };
+        console.log('🎹 钢琴开始播放');
     }
 
-    /** 切换环境音 */
     function 切换环境音(类型) {
+        console.log('🎵 切换环境音:', 类型);
         if (环境音类型 === 类型) {
-            // 已在播放，停止
             停止环境音();
             return false;
         }
@@ -297,7 +315,6 @@ var 音效引擎 = (function () {
         return true;
     }
 
-    /** 是否正在播放某类型 */
     function 正在播放(类型) {
         return 环境音类型 === 类型;
     }
@@ -310,7 +327,8 @@ var 音效引擎 = (function () {
         播放呼气音: 播放呼气音,
         切换环境音: 切换环境音,
         正在播放: 正在播放,
-        停止环境音: 停止环境音
+        停止环境音: 停止环境音,
+        获取上下文: 获取上下文
     };
 })();
 
