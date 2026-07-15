@@ -170,6 +170,43 @@ body {
     padding: 4px;
 }
 
+/* 导航右侧区域（音乐按钮 + 菜单按钮） */
+.导航右侧 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 背景音乐按钮 */
+.音乐按钮 {
+    background: none;
+    border: 2px solid transparent;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+    line-height: 1;
+}
+
+.音乐按钮:hover {
+    opacity: 0.8;
+    border-color: var(--主色);
+    background-color: var(--主色浅);
+}
+
+.音乐按钮.播放中 {
+    opacity: 1;
+    animation: 音符跳动 1.5s ease-in-out infinite;
+    border-color: var(--主色);
+}
+
+@keyframes 音符跳动 {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+}
+
 /* ============================================
    首页横幅
    ============================================ */

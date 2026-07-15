@@ -334,6 +334,97 @@ var 音效引擎 = (function () {
 
 
 /* ==========================================
+   0.5 背景音乐引擎 — 柔和环境氛围音
+   ========================================== */
+var 背景音乐 = (function () {
+    var 正在播放中 = false;
+    var 音符定时器 = null;
+    var 当前音符组 = [];
+    var 全局音量 = 0.06; // 极低音量，若有若无
+
+    // 和弦进行（频率 Hz）：Am → F → C → G
+    var 和弦列表 = [
+        [220.0, 261.6, 329.6, 440.0],  // Am
+        [174.6, 220.0, 261.6, 349.2],  // F
+        [130.8, 164.8, 196.0, 261.6],  // C
+        [196.0, 246.9, 293.7, 392.0],  // G
+    ];
+    var 当前和弦 = 0;
+
+    /** 停止当前音符组 */
+    function 清除音符() {
+        当前音符组.forEach(function (osc) {
+            try { osc.stop(); } catch (e) { }
+        });
+        当前音符组 = [];
+    }
+
+    /** 以极柔和的方式开始一个和弦 */
+    function 弹奏和弦(和弦) {
+        var ctx = 音效引擎.获取上下文();
+        if (!ctx) return;
+        var 起始 = ctx.currentTime;
+        和弦.forEach(function (频率, 索引) {
+            var 振荡器 = ctx.createOscillator();
+            var 增益 = ctx.createGain();
+            // 混合三角波和正弦波模拟软垫音色
+            振荡器.type = 索引 % 2 === 0 ? 'sine' : 'triangle';
+            // 略微失谐增加厚度
+            振荡器.frequency.setValueAtTime(频率 + (Math.random() - 0.5) * 1.5, 起始);
+            // 缓慢淡入
+            增益.gain.setValueAtTime(0.0001, 起始);
+            增益.gain.exponentialRampToValueAtTime(全局音量 * (0.6 + 索引 * 0.15), 起始 + 3);
+            // 保持
+            增益.gain.setValueAtTime(全局音量 * (0.6 + 索引 * 0.15), 起始 + 6.5);
+            // 缓慢淡出
+            增益.gain.exponentialRampToValueAtTime(0.0001, 起始 + 9);
+            振荡器.connect(增益);
+            增益.connect(ctx.destination);
+            振荡器.start(起始);
+            振荡器.stop(起始 + 9.2);
+            当前音符组.push(振荡器);
+        });
+    }
+
+    /** 播放下一个和弦 */
+    function 下一个和弦() {
+        if (!正在播放中) return;
+        清除音符();
+        弹奏和弦(和弦列表[当前和弦]);
+        当前和弦 = (当前和弦 + 1) % 和弦列表.length;
+        音符定时器 = setTimeout(下一个和弦, 7800);
+    }
+
+    /** 开始播放 */
+    function 开始() {
+        if (正在播放中) return;
+        正在播放中 = true;
+        当前和弦 = Math.floor(Math.random() * 和弦列表.length);
+        下一个和弦();
+        console.log('🎵 背景音乐开始');
+    }
+
+    /** 停止播放 */
+    function 停止() {
+        正在播放中 = false;
+        clearTimeout(音符定时器);
+        清除音符();
+        console.log('🔇 背景音乐停止');
+    }
+
+    /** 切换 */
+    function 切换() {
+        if (正在播放中) { 停止(); return false; }
+        else { 开始(); return true; }
+    }
+
+    function 是否播放中() { return 正在播放中; }
+
+    return { 开始: 开始, 停止: 停止, 切换: 切换, 是否播放中: 是否播放中 };
+})();
+
+
+/* ==========================================
    主初始化 — 页面加载完成后执行
    ========================================== */
 document.addEventListener('DOMContentLoaded', function () {
@@ -346,6 +437,7 @@ document.addEventListener('DOMContentLoaded', function () {
     初始化点击游戏();
     初始化音频播放();
     初始化名言切换();
+    初始化背景音乐();
 });
 
 
@@ -732,4 +824,32 @@ function 初始化名言切换() {
     }
 
     按钮.addEventListener('click', 随机名言);
+}
+
+
+/* ==========================================
+   10. 背景音乐控制
+   ========================================== */
+function 初始化背景音乐() {
+    var 按钮 = document.getElementById('背景音乐按钮');
+    if (!按钮) return;
+
+    // 更新按钮图标
+    function 更新图标(播放中) {
+        按钮.innerHTML = 播放中 ? '🎵' : '🎵';
+        按钮.title = 播放中 ? '点击关闭背景音乐' : '点击开启背景音乐';
+        if (播放中) {
+            按钮.classList.add('播放中');
+        } else {
+            按钮.classList.remove('播放中');
+        }
+    }
+
+    按钮.addEventListener('click', function () {
+        var 结果 = 背景音乐.切换();
+        更新图标(结果);
+    });
+
+    // 初始状态
+    更新图标(false);
 }
