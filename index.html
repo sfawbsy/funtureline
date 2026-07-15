@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心灵驿站 — 你的在线解压空间</title>
+    <link rel="stylesheet" href="样式/主样式.css">
+</head>
+<body>
+
+    <!-- ========== 导航栏 ========== -->
+    <nav class="导航栏" id="导航栏">
+        <div class="容器">
+            <div class="网站标题">🌿 心灵驿站</div>
+            <ul class="菜单列表">
+                <li><a href="#首页">首页</a></li>
+                <li><a href="#心理咨询">心理咨询</a></li>
+                <li><a href="#解压游戏">解压游戏</a></li>
+                <li><a href="#放松音频">放松音频</a></li>
+                <li><a href="#每日正能量">每日正能量</a></li>
+            </ul>
+            <button class="菜单按钮" id="菜单按钮" title="打开菜单">☰</button>
+        </div>
+    </nav>
+
+    <!-- ========== 首页横幅 ========== -->
+    <header class="首页横幅" id="首页">
+        <div class="容器">
+            <h1 class="主标题">🍃 放慢脚步，深呼吸</h1>
+            <p class="副标题">生活有压力是正常的，来这里稍作停留，给心灵一个温柔的拥抱。</p>
+            <div class="按钮组">
+                <a href="#解压游戏" class="按钮 主要按钮">🎮 开始解压</a>
+                <a href="#心理咨询" class="按钮 次要按钮">💬 心理小贴士</a>
+            </div>
+        </div>
+        <!-- 装饰性浮动元素 -->
+        <div class="浮动装饰 装饰1">🌸</div>
+        <div class="浮动装饰 装饰2">🍀</div>
+        <div class="浮动装饰 装饰3">🫧</div>
+        <div class="浮动装饰 装饰4">🌻</div>
+    </header>
+
+    <!-- ========== 心理咨询区域 ========== -->
+    <section class="心理区域" id="心理咨询">
+        <div class="容器">
+            <h2 class="区域标题">💚 心理舒缓小贴士</h2>
+            <p class="区域描述">当你感到焦虑、疲惫或压力大时，试试这些简单有效的方法：</p>
+
+            <div class="贴士网格">
+                <!-- 贴士 1 -->
+                <div class="贴士卡片">
+                    <div class="贴士图标">🧘</div>
+                    <h3>478 呼吸法</h3>
+                    <p>用鼻子吸气 <strong>4</strong> 秒，屏住呼吸 <strong>7</strong> 秒，用嘴巴缓慢呼气 <strong>8</strong> 秒。重复 3-5 次，心率会逐渐平稳。</p>
+                </div>
+                <!-- 贴士 2 -->
+                <div class="贴士卡片">
+                    <div class="贴士图标">📝</div>
+                    <h3>情绪日记</h3>
+                    <p>每天花 5 分钟写下你的感受，不必修饰，想到什么写什么。把情绪「倒」到纸上，心里会轻松很多。</p>
+                </div>
+                <!-- 贴士 3 -->
+                <div class="贴士卡片">
+                    <div class="贴士图标">🚶</div>
+                    <h3>正念散步</h3>
+                    <p>放下手机，慢慢走 10 分钟。注意脚踩地面的感觉、风吹过皮肤的温度、周围的声音。回到当下就是最好的放松。</p>
+                </div>
+                <!-- 贴士 4 -->
+                <div class="贴士卡片">
+                    <div class="贴士图标">🎵</div>
+                    <h3>音乐疗愈</h3>
+                    <p>听一些舒缓的纯音乐或白噪音（雨声、海浪声），让大脑从繁杂的思绪中抽离出来。</p>
+                </div>
+                <!-- 贴士 5 -->
+                <div class="贴士卡片">
+                    <div class="贴士图标">🤗</div>
+                    <h3>自我拥抱</h3>
+                    <p>双手交叉抱住自己的肩膀，轻轻按压，持续 30 秒。这个动作会刺激催产素分泌，带来安全感。</p>
+                </div>
+                <!-- 贴士 6 -->
+                <div class="贴士卡片">
+                    <div class="贴士图标">☕</div>
+                    <h3>温暖饮品</h3>
+                    <p>泡一杯温热的茶或牛奶，双手捧着杯子感受温度。暖意会通过触觉传递到内心，缓解紧张情绪。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 解压游戏区域 ========== -->
+    <section class="游戏区域" id="解压游戏">
+        <div class="容器">
+            <h2 class="区域标题">🎮 解压小游戏</h2>
+            <p class="区域描述">挑一个喜欢的，尽情释放压力吧！</p>
+
+            <!-- 游戏选择标签 -->
+            <div class="游戏标签栏">
+                <button class="游戏标签 活跃" data-game="泡泡">🫧 捏泡泡</button>
+                <button class="游戏标签" data-game="涂鸦">🎨 自由涂鸦</button>
+                <button class="游戏标签" data-game="呼吸">🌬️ 呼吸引导</button>
+                <button class="游戏标签" data-game="计数">🔢 疯狂点击</button>
+            </div>
+
+            <!-- 游戏1：捏泡泡 -->
+            <div class="游戏面板" id="游戏-泡泡">
+                <div class="游戏说明">
+                    <p>把下面的泡泡一个个<strong>点破</strong>吧！听着「啵」的声音超级解压~</p>
+                    <button class="按钮 小按钮" id="重置泡泡">🔄 重新生成</button>
+                    <span class="计数器">已捏破：<strong id="泡泡计数">0</strong> 个</span>
+                </div>
+                <div class="泡泡区域" id="泡泡区域">
+                    <!-- JS 动态生成泡泡 -->
+                </div>
+            </div>
+
+            <!-- 游戏2：自由涂鸦 -->
+            <div class="游戏面板" id="游戏-涂鸦" style="display:none;">
+                <div class="游戏说明">
+                    <p>在画布上<strong>随意涂画</strong>，释放你的情绪 🎨</p>
+                    <div class="涂鸦工具栏">
+                        <input type="color" id="画笔颜色" value="#4f9da6">
+                        <input type="range" id="画笔粗细" min="2" max="30" value="8">
+                        <span class="粗细标签">粗细</span>
+                        <button class="按钮 小按钮" id="清空画布">🗑️ 清空画布</button>
+                    </div>
+                </div>
+                <canvas id="涂鸦画布" width="800" height="450"></canvas>
+            </div>
+
+            <!-- 游戏3：呼吸引导 -->
+            <div class="游戏面板" id="游戏-呼吸" style="display:none;">
+                <div class="游戏说明">
+                    <p>跟着动画的节奏一起<strong>深呼吸</strong> 🌬️</p>
+                    <button class="按钮 小按钮" id="开始呼吸">▶️ 开始引导</button>
+                    <button class="按钮 小按钮" id="停止呼吸" style="display:none;">⏹️ 停止</button>
+                    <span class="呼吸状态" id="呼吸状态">准备开始</span>
+                </div>
+                <div class="呼吸动画区">
+                    <div class="呼吸圆圈" id="呼吸圆圈">
+                        <span class="呼吸文字" id="呼吸文字">准备</span>
+                    </div>
+                </div>
+                <p class="呼吸说明">吸气 4 秒 → 屏息 7 秒 → 呼气 8 秒</p>
+            </div>
+
+            <!-- 游戏4：疯狂点击 -->
+            <div class="游戏面板" id="游戏-计数" style="display:none;">
+                <div class="游戏说明">
+                    <p>10 秒内你能点击多少次？把压力都<strong>发泄</strong>出来！🔢</p>
+                    <button class="按钮 小按钮" id="开始计数">▶️ 开始挑战</button>
+                    <span class="计数器">得分：<strong id="点击数">0</strong></span>
+                    <span class="计数器" id="倒计时" style="display:none;">剩余：<strong>10</strong> 秒</span>
+                </div>
+                <div class="点击区域" id="点击区域">
+                    <div class="点击大按钮" id="点击大按钮">👆<br>点我！</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 放松音频区域 ========== -->
+    <section class="音频区域" id="放松音频">
+        <div class="容器">
+            <h2 class="区域标题">🎵 放松音效</h2>
+            <p class="区域描述">点击播放舒缓的背景音效，戴上耳机效果更佳</p>
+            <div class="音频网格">
+                <!-- 使用在线音频，也可替换为本地文件 -->
+                <div class="音频卡片" data-sound="rain">
+                    <div class="音频图标">🌧️</div>
+                    <h3>雨声</h3>
+                    <p>淅淅沥沥，助眠安神</p>
+                    <button class="按钮 小按钮 播放按钮">▶ 播放</button>
+                    <!-- 隐藏的 audio 元素 -->
+                    <audio class="音频元素" loop preload="none">
+                        <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_1c91f02d51.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+                <div class="音频卡片" data-sound="ocean">
+                    <div class="音频图标">🌊</div>
+                    <h3>海浪声</h3>
+                    <p>潮起潮落，心也随之平静</p>
+                    <button class="按钮 小按钮 播放按钮">▶ 播放</button>
+                    <audio class="音频元素" loop preload="none">
+                        <source src="https://cdn.pixabay.com/audio/2022/01/18/audio_6d18fc9c08.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+                <div class="音频卡片" data-sound="forest">
+                    <div class="音频图标">🌲</div>
+                    <h3>森林鸟鸣</h3>
+                    <p>置身林间，聆听自然</p>
+                    <button class="按钮 小按钮 播放按钮">▶ 播放</button>
+                    <audio class="音频元素" loop preload="none">
+                        <source src="https://cdn.pixabay.com/audio/2022/05/19/audio_8e5c8b2b4b.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+                <div class="音频卡片" data-sound="piano">
+                    <div class="音频图标">🎹</div>
+                    <h3>轻柔钢琴</h3>
+                    <p>舒缓旋律，抚慰心灵</p>
+                    <button class="按钮 小按钮 播放按钮">▶ 播放</button>
+                    <audio class="音频元素" loop preload="none">
+                        <source src="https://cdn.pixabay.com/audio/2022/04/27/audio_9d2e0d2d3b.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 每日正能量 ========== -->
+    <section class="正能量区域" id="每日正能量">
+        <div class="容器">
+            <h2 class="区域标题">✨ 每日一句</h2>
+            <div class="名言卡片" id="名言卡片">
+                <p class="名言文字" id="名言文字">你已经在努力了，这本身就值得被肯定。</p>
+                <p class="名言来源" id="名言来源">—— 心灵驿站</p>
+                <button class="按钮 小按钮" id="换一句">🔄 换一句</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 页脚 ========== -->
+    <footer class="页脚">
+        <div class="容器">
+            <p>🌿 心灵驿站 — 你的在线解压空间 | 累了就停下来歇歇，你已经做得很好了 💚</p>
+        </div>
+    </footer>
+
+    <!-- 回到顶部 -->
+    <button class="回到顶部" id="回到顶部" title="回到顶部">⬆</button>
+
+    <script src="脚本/主脚本.js"></script>
+</body>
+</html>

@@ -1,0 +1,741 @@
+/* ============================================
+   主样式表 — 心灵驿站解压网站
+   温暖、柔和、治愈的配色风格
+   ============================================ */
+
+/* ---------- 自定义颜色变量（方便统一修改） ---------- */
+:root {
+    --主色: #4f9da6;        /* 温和的蓝绿色 */
+    --主色深: #3b7d85;
+    --主色浅: #e8f4f5;
+    --暖色: #f0a58f;        /* 温暖的珊瑚色 */
+    --暖色深: #d9826b;
+    --背景色: #faf8f5;       /* 暖白背景 */
+    --卡片色: #ffffff;
+    --文字色: #4a4a4a;
+    --浅文字: #8a8a8a;
+    --边框色: #e8e3dd;
+    --渐变暖: linear-gradient(135deg, #e8f4f5 0%, #fdf2ed 50%, #f5f0e8 100%);
+    --阴影: 0 4px 20px rgba(0, 0, 0, 0.06);
+    --阴影悬停: 0 8px 30px rgba(0, 0, 0, 0.10);
+}
+
+/* ---------- 基础重置 ---------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.8;
+    color: var(--文字色);
+    background-color: var(--背景色);
+}
+
+/* ---------- 通用容器 ---------- */
+.容器 {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ---------- 按钮系统 ---------- */
+.按钮 {
+    display: inline-block;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.主要按钮 {
+    background-color: var(--主色);
+    color: #fff;
+    font-weight: 600;
+}
+
+.主要按钮:hover {
+    background-color: var(--主色深);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 157, 166, 0.35);
+}
+
+.次要按钮 {
+    background-color: #fff;
+    color: var(--主色);
+    border: 2px solid var(--主色);
+    font-weight: 600;
+}
+
+.次要按钮:hover {
+    background-color: var(--主色浅);
+    transform: translateY(-2px);
+}
+
+.小按钮 {
+    padding: 8px 18px;
+    font-size: 14px;
+    border-radius: 20px;
+    background-color: #fff;
+    color: var(--主色);
+    border: 1.5px solid var(--主色);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.小按钮:hover {
+    background-color: var(--主色);
+    color: #fff;
+}
+
+/* ============================================
+   导航栏
+   ============================================ */
+.导航栏 {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    padding: 14px 0;
+    transition: all 0.3s ease;
+}
+
+.导航栏 .容器 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.网站标题 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--主色);
+}
+
+.菜单列表 {
+    display: flex;
+    list-style: none;
+    gap: 28px;
+}
+
+.菜单列表 a {
+    text-decoration: none;
+    color: var(--文字色);
+    font-weight: 500;
+    font-size: 15px;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.菜单列表 a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    border-radius: 1px;
+    background-color: var(--主色);
+    transition: width 0.3s ease;
+}
+
+.菜单列表 a:hover {
+    color: var(--主色);
+}
+
+.菜单列表 a:hover::after {
+    width: 100%;
+}
+
+.菜单按钮 {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    color: var(--文字色);
+    padding: 4px;
+}
+
+/* ============================================
+   首页横幅
+   ============================================ */
+.首页横幅 {
+    margin-top: 68px;
+    padding: 90px 0 80px;
+    text-align: center;
+    background: var(--渐变暖);
+    position: relative;
+    overflow: hidden;
+}
+
+.主标题 {
+    font-size: 46px;
+    font-weight: 800;
+    color: #3d6b6f;
+    margin-bottom: 14px;
+    animation: 淡入上移 0.9s ease;
+}
+
+.副标题 {
+    font-size: 18px;
+    color: #7a8c8e;
+    margin-bottom: 30px;
+    animation: 淡入上移 0.9s ease 0.2s both;
+}
+
+.按钮组 {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: 淡入上移 0.9s ease 0.35s both;
+}
+
+/* 浮动装饰 */
+.浮动装饰 {
+    position: absolute;
+    font-size: 40px;
+    opacity: 0.5;
+    animation: 漂浮 5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.装饰1 { top: 15%; left: 8%; animation-delay: 0s; }
+.装饰2 { top: 60%; left: 12%; animation-delay: 1.2s; font-size: 30px; }
+.装饰3 { top: 20%; right: 10%; animation-delay: 2.4s; }
+.装饰4 { bottom: 20%; right: 8%; animation-delay: 0.6s; font-size: 35px; }
+
+@keyframes 淡入上移 {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes 漂浮 {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    33%      { transform: translateY(-12px) rotate(3deg); }
+    66%      { transform: translateY(-5px) rotate(-2deg); }
+}
+
+/* ============================================
+   区域通用标题
+   ============================================ */
+.区域标题 {
+    text-align: center;
+    font-size: 30px;
+    margin-bottom: 12px;
+    color: #3d6b6f;
+}
+
+.区域描述 {
+    text-align: center;
+    color: var(--浅文字);
+    margin-bottom: 40px;
+    font-size: 15px;
+}
+
+/* ============================================
+   心理咨询 — 贴士网格
+   ============================================ */
+.心理区域 {
+    padding: 80px 0;
+    background-color: #fff;
+}
+
+.贴士网格 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.贴士卡片 {
+    background: #fdfdfc;
+    border: 1px solid var(--边框色);
+    border-radius: 14px;
+    padding: 28px 24px;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.贴士卡片:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--阴影悬停);
+    border-left-color: var(--主色);
+}
+
+.贴士图标 {
+    font-size: 40px;
+    margin-bottom: 12px;
+}
+
+.贴士卡片 h3 {
+    font-size: 18px;
+    color: #3d6b6f;
+    margin-bottom: 10px;
+}
+
+.贴士卡片 p {
+    font-size: 14px;
+    color: #777;
+    line-height: 1.7;
+}
+
+.贴士卡片 strong {
+    color: var(--暖色);
+}
+
+/* ============================================
+   解压游戏区域
+   ============================================ */
+.游戏区域 {
+    padding: 80px 0;
+    background: var(--渐变暖);
+}
+
+.游戏标签栏 {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.游戏标签 {
+    padding: 10px 22px;
+    border: 2px solid #d5dcdd;
+    border-radius: 25px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--文字色);
+    transition: all 0.25s ease;
+}
+
+.游戏标签:hover {
+    border-color: var(--主色);
+    color: var(--主色);
+}
+
+.游戏标签.活跃 {
+    background: var(--主色);
+    color: #fff;
+    border-color: var(--主色);
+}
+
+.游戏面板 {
+    background: #fff;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: var(--阴影);
+}
+
+.游戏说明 {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.游戏说明 p {
+    flex: 1;
+    min-width: 200px;
+    margin: 0;
+}
+
+.计数器 {
+    font-size: 15px;
+    color: var(--浅文字);
+    margin-left: auto;
+}
+
+/* ---- 泡泡游戏 ---- */
+.泡泡区域 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    min-height: 200px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.泡泡 {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.7), transparent 60%),
+                radial-gradient(circle at 50% 50%, #a8d8d3 0%, #6db3a8 40%, #4f9da6 100%);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    animation: 泡泡浮动 3s ease-in-out infinite;
+    position: relative;
+}
+
+.泡泡:hover {
+    transform: scale(1.15);
+}
+
+.泡泡:active {
+    transform: scale(0.1);
+    opacity: 0;
+}
+
+@keyframes 泡泡浮动 {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+}
+
+.泡泡:nth-child(odd)  { animation-delay: 0s; }
+.泡泡:nth-child(even) { animation-delay: 1.5s; }
+
+/* ---- 涂鸦画布 ---- */
+.涂鸦工具栏 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#涂鸦画布 {
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    border: 2px solid var(--边框色);
+    border-radius: 10px;
+    cursor: crosshair;
+    display: block;
+    margin: 0 auto;
+    background: #fefefe;
+}
+
+.粗细标签 {
+    font-size: 13px;
+    color: var(--浅文字);
+    min-width: auto;
+}
+
+/* ---- 呼吸引导 ---- */
+.呼吸动画区 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 320px;
+}
+
+.呼吸圆圈 {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #d0ece8 0%, #81c4c0 60%, var(--主色) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 40px rgba(79, 157, 166, 0.25);
+}
+
+.呼吸圆圈.吸气 {
+    transform: scale(1.5);
+    transition: all 4s ease-in-out;
+}
+
+.呼吸圆圈.屏息 {
+    transform: scale(1.5);
+    transition: all 7s ease-in-out;
+}
+
+.呼吸圆圈.呼气 {
+    transform: scale(0.8);
+    transition: all 8s ease-in-out;
+}
+
+.呼吸文字 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.呼吸状态 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--主色);
+}
+
+.呼吸说明 {
+    text-align: center;
+    color: var(--浅文字);
+    margin-top: 16px;
+}
+
+/* ---- 点击计数 ---- */
+.点击区域 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 260px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.点击大按钮 {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #ffd4c4, #f0a58f 60%, #e8876b 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    line-height: 1.4;
+    user-select: none;
+    box-shadow: 0 8px 30px rgba(240, 165, 143, 0.4);
+    transition: all 0.1s ease;
+}
+
+.点击大按钮:active {
+    transform: scale(0.88);
+}
+
+.点击大按钮.禁用 {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* ============================================
+   放松音频区域
+   ============================================ */
+.音频区域 {
+    padding: 80px 0;
+    background-color: #fff;
+}
+
+.音频网格 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.音频卡片 {
+    background: #fdfdfc;
+    border: 1px solid var(--边框色);
+    border-radius: 14px;
+    padding: 28px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.音频卡片:hover {
+    box-shadow: var(--阴影悬停);
+    transform: translateY(-3px);
+}
+
+.音频卡片.播放中 {
+    border-color: var(--主色);
+    background: #f5fafa;
+}
+
+.音频图标 {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.音频卡片 h3 {
+    font-size: 18px;
+    color: #3d6b6f;
+    margin-bottom: 6px;
+}
+
+.音频卡片 p {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 16px;
+}
+
+.播放按钮 {
+    min-width: 90px;
+}
+
+.播放按钮.播放中状态 {
+    background-color: var(--暖色);
+    color: #fff;
+    border-color: var(--暖色);
+}
+
+/* ============================================
+   每日正能量
+   ============================================ */
+.正能量区域 {
+    padding: 80px 0;
+    background: var(--渐变暖);
+}
+
+.名言卡片 {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    background: #fff;
+    border-radius: 16px;
+    padding: 50px 40px;
+    box-shadow: var(--阴影);
+}
+
+.名言文字 {
+    font-size: 22px;
+    line-height: 1.7;
+    color: #3d6b6f;
+    margin-bottom: 12px;
+    font-style: italic;
+    transition: all 0.4s ease;
+}
+
+.名言来源 {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 20px;
+}
+
+/* ============================================
+   页脚
+   ============================================ */
+.页脚 {
+    background-color: #3d5e61;
+    color: #b0c4c6;
+    text-align: center;
+    padding: 22px 0;
+    font-size: 14px;
+}
+
+/* ============================================
+   回到顶部
+   ============================================ */
+.回到顶部 {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--主色);
+    color: #fff;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(79, 157, 166, 0.35);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.回到顶部.显示 {
+    opacity: 1;
+    visibility: visible;
+}
+
+.回到顶部:hover {
+    background-color: var(--主色深);
+    transform: translateY(-3px);
+}
+
+/* ============================================
+   移动端适配
+   ============================================ */
+@media (max-width: 768px) {
+    .主标题 {
+        font-size: 30px;
+    }
+
+    .副标题 {
+        font-size: 15px;
+    }
+
+    .菜单列表 {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        flex-direction: column;
+        padding: 16px 20px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        gap: 0;
+    }
+
+    .菜单列表.展开 {
+        display: flex;
+    }
+
+    .菜单列表 a {
+        padding: 12px 0;
+        display: block;
+        border-bottom: 1px solid #f0efed;
+    }
+
+    .菜单按钮 {
+        display: block;
+    }
+
+    .按钮组 {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .贴士网格,
+    .音频网格 {
+        grid-template-columns: 1fr;
+    }
+
+    .游戏标签栏 {
+        gap: 6px;
+    }
+
+    .游戏标签 {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    .首页横幅 {
+        padding: 60px 0 50px;
+    }
+
+    .区域标题 {
+        font-size: 24px;
+    }
+
+    .浮动装饰 {
+        font-size: 26px;
+    }
+
+    .泡泡 {
+        width: 48px;
+        height: 48px;
+    }
+
+    .点击大按钮 {
+        width: 140px;
+        height: 140px;
+        font-size: 20px;
+    }
+}

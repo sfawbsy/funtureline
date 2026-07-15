@@ -1,0 +1,15 @@
+# 操作系统生成的文件
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# 编辑器临时文件
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# 临时文件
+*.tmp
+*.log
