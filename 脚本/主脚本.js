@@ -1421,24 +1421,41 @@ function 初始化五子棋() {
     var 黑方胜场元素 = document.getElementById('黑方胜场');
     var 白方胜场元素 = document.getElementById('白方胜场');
 
+    // 联机元素
+    var 联机面板 = document.getElementById('五子棋联机面板');
+    var 联机按钮 = document.getElementById('五子棋联机按钮');
+    var 状态灯 = document.getElementById('联机状态灯');
+    var 状态文字 = document.getElementById('联机状态文字');
+    var 操作区 = document.getElementById('联机操作区');
+    var 房间信息区 = document.getElementById('联机房间信息');
+    var 房间号显示 = document.getElementById('房间号显示');
+    var 断开按钮 = document.getElementById('断开联机按钮');
+
     var 格子数 = 15;
     var 格子大小 = 35;
     var 边距 = 40;
     var 棋子半径 = 14;
-    var 棋盘 = [];        // 15x15, 0=空, 1=黑, 2=白
-    var 当前玩家 = 1;     // 1=黑, 2=白
+    var 棋盘 = [];
+    var 当前玩家 = 1;
     var 游戏结束 = false;
-    var 获胜线 = null;    // [{r,c}, ...] 获胜的5个位置
+    var 获胜线 = null;
     var 黑方胜场 = 0;
     var 白方胜场 = 0;
 
+    // 联机状态
+    var 联机模式 = false;
+    var 我是房主 = false;
+    var 我的颜色 = 0;  // 1=黑(先手), 2=白(后手)
+    var peer = null;
+    var 连接 = null;
+    var 已连接 = false;
+
+    // ========== 棋盘逻辑（同本地） ==========
     function 初始化棋盘() {
         棋盘 = [];
         for (var r = 0; r < 格子数; r++) {
             棋盘[r] = [];
-            for (var c = 0; c < 格子数; c++) {
-                棋盘[r][c] = 0;
-            }
+            for (var c = 0; c < 格子数; c++) { 棋盘[r][c] = 0; }
         }
         当前玩家 = 1;
         游戏结束 = false;
@@ -1449,9 +1466,15 @@ function 初始化五子棋() {
     function 更新状态文字() {
         if (游戏结束) {
             var 胜者 = 当前玩家 === 1 ? '⚪ 白方' : '⚫ 黑方';
+            if (联机模式 && 我的颜色 > 0) {
+                胜者 = 当前玩家 === 我的颜色 ? '🎉 你' : '😢 对手';
+            }
             状态元素.innerHTML = '🏆 <strong>' + 胜者 + '获胜！</strong>';
         } else {
             var 玩家名 = 当前玩家 === 1 ? '⚫ 黑方' : '⚪ 白方';
+            if (联机模式 && 我的颜色 > 0) {
+                玩家名 = 当前玩家 === 我的颜色 ? '轮到你了' : '等待对手...';
+            }
             状态元素.innerHTML = '轮到：<strong>' + 玩家名 + '</strong>';
         }
         黑方胜场元素.textContent = 黑方胜场;
@@ -1462,169 +1485,74 @@ function 初始化五子棋() {
         var 画布尺寸 = 边距 * 2 + 格子大小 * (格子数 - 1);
         画布.width = 画布尺寸;
         画布.height = 画布尺寸;
-
-        // 背景
         ctx.fillStyle = '#dcb468';
         ctx.fillRect(0, 0, 画布尺寸, 画布尺寸);
-
-        // 网格线
         ctx.strokeStyle = '#5a4a3a';
         ctx.lineWidth = 1;
         for (var i = 0; i < 格子数; i++) {
             var 坐标 = 边距 + i * 格子大小;
-            // 横线
-            ctx.beginPath();
-            ctx.moveTo(边距, 坐标);
-            ctx.lineTo(边距 + 格子大小 * (格子数 - 1), 坐标);
-            ctx.stroke();
-            // 竖线
-            ctx.beginPath();
-            ctx.moveTo(坐标, 边距);
-            ctx.lineTo(坐标, 边距 + 格子大小 * (格子数 - 1));
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(边距, 坐标); ctx.lineTo(边距 + 格子大小 * (格子数 - 1), 坐标); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(坐标, 边距); ctx.lineTo(坐标, 边距 + 格子大小 * (格子数 - 1)); ctx.stroke();
         }
-
-        // 星位点（天元和四星）
-        var 星位 = [
-            [3,3], [3,7], [3,11],
-            [7,3], [7,7], [7,11],
-            [11,3], [11,7], [11,11]
-        ];
+        var 星位 = [[3,3],[3,7],[3,11],[7,3],[7,7],[7,11],[11,3],[11,7],[11,11]];
         ctx.fillStyle = '#5a4a3a';
         for (var s = 0; s < 星位.length; s++) {
-            var 星 = 星位[s];
-            var x = 边距 + 星[0] * 格子大小;
-            var y = 边距 + 星[1] * 格子大小;
-            ctx.beginPath();
-            ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(边距 + 星位[s][0] * 格子大小, 边距 + 星位[s][1] * 格子大小, 3.5, 0, Math.PI * 2); ctx.fill();
         }
-
-        // 绘制棋子
         for (var r = 0; r < 格子数; r++) {
             for (var c = 0; c < 格子数; c++) {
                 if (棋盘[r][c] === 0) continue;
-                var x = 边距 + c * 格子大小;
-                var y = 边距 + r * 格子大小;
-
-                // 阴影
+                var x = 边距 + c * 格子大小, y = 边距 + r * 格子大小;
                 ctx.fillStyle = 'rgba(0,0,0,0.2)';
-                ctx.beginPath();
-                ctx.arc(x + 1.5, y + 1.5, 棋子半径, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 棋子本体
+                ctx.beginPath(); ctx.arc(x + 1.5, y + 1.5, 棋子半径, 0, Math.PI * 2); ctx.fill();
                 var 渐变 = ctx.createRadialGradient(x - 4, y - 4, 2, x, y, 棋子半径);
-                if (棋盘[r][c] === 1) {
-                    渐变.addColorStop(0, '#555');
-                    渐变.addColorStop(0.6, '#222');
-                    渐变.addColorStop(1, '#000');
-                } else {
-                    渐变.addColorStop(0, '#fff');
-                    渐变.addColorStop(0.6, '#eee');
-                    渐变.addColorStop(1, '#ccc');
-                }
+                if (棋盘[r][c] === 1) { 渐变.addColorStop(0,'#555'); 渐变.addColorStop(0.6,'#222'); 渐变.addColorStop(1,'#000'); }
+                else { 渐变.addColorStop(0,'#fff'); 渐变.addColorStop(0.6,'#eee'); 渐变.addColorStop(1,'#ccc'); }
                 ctx.fillStyle = 渐变;
-                ctx.beginPath();
-                ctx.arc(x, y, 棋子半径, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(x, y, 棋子半径, 0, Math.PI * 2); ctx.fill();
             }
         }
-
-        // 高亮获胜线
         if (获胜线 && 获胜线.length === 5) {
-            ctx.strokeStyle = '#ff4444';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            var 首 = 获胜线[0];
-            ctx.moveTo(边距 + 首.c * 格子大小, 边距 + 首.r * 格子大小);
-            for (var i = 1; i < 获胜线.length; i++) {
-                ctx.lineTo(边距 + 获胜线[i].c * 格子大小, 边距 + 获胜线[i].r * 格子大小);
-            }
+            ctx.strokeStyle = '#ff4444'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(边距 + 获胜线[0].c * 格子大小, 边距 + 获胜线[0].r * 格子大小);
+            for (var i = 1; i < 获胜线.length; i++) ctx.lineTo(边距 + 获胜线[i].c * 格子大小, 边距 + 获胜线[i].r * 格子大小);
             ctx.stroke();
-
-            // 获胜棋子加光环
             for (var i = 0; i < 获胜线.length; i++) {
-                var w = 获胜线[i];
-                var wx = 边距 + w.c * 格子大小;
-                var wy = 边距 + w.r * 格子大小;
-                ctx.strokeStyle = '#ff4444';
-                ctx.lineWidth = 2.5;
-                ctx.beginPath();
-                ctx.arc(wx, wy, 棋子半径 + 3, 0, Math.PI * 2);
-                ctx.stroke();
+                ctx.beginPath(); ctx.arc(边距 + 获胜线[i].c * 格子大小, 边距 + 获胜线[i].r * 格子大小, 棋子半径 + 3, 0, Math.PI * 2); ctx.stroke();
             }
         }
-
-        // 最后落子标记
         if (!游戏结束 && 棋盘.最后落子) {
-            var 落 = 棋盘.最后落子;
-            var lx = 边距 + 落.c * 格子大小;
-            var ly = 边距 + 落.r * 格子大小;
             ctx.fillStyle = '#ff4444';
-            ctx.beginPath();
-            ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(边距 + 棋盘.最后落子.c * 格子大小, 边距 + 棋盘.最后落子.r * 格子大小, 3.5, 0, Math.PI * 2); ctx.fill();
         }
     }
 
     function 检查胜利(r, c) {
         var 玩家 = 棋盘[r][c];
         if (玩家 === 0) return false;
-
-        var 方向组 = [
-            [{dr: 0, dc: 1}, {dr: 0, dc: -1}],   // 水平
-            [{dr: 1, dc: 0}, {dr: -1, dc: 0}],   // 垂直
-            [{dr: 1, dc: 1}, {dr: -1, dc: -1}],  // 对角线
-            [{dr: 1, dc: -1}, {dr: -1, dc: 1}]   // 反对角线
-        ];
-
+        var 方向组 = [[{dr:0,dc:1},{dr:0,dc:-1}],[{dr:1,dc:0},{dr:-1,dc:0}],[{dr:1,dc:1},{dr:-1,dc:-1}],[{dr:1,dc:-1},{dr:-1,dc:1}]];
         for (var d = 0; d < 方向组.length; d++) {
-            var 连线 = [{r: r, c: c}];
+            var 连线 = [{r:r,c:c}];
             for (var dir = 0; dir < 2; dir++) {
-                var dr = 方向组[d][dir].dr;
-                var dc = 方向组[d][dir].dc;
+                var dr = 方向组[d][dir].dr, dc = 方向组[d][dir].dc;
                 for (var step = 1; step < 5; step++) {
-                    var nr = r + dr * step;
-                    var nc = c + dc * step;
+                    var nr = r + dr * step, nc = c + dc * step;
                     if (nr >= 0 && nr < 格子数 && nc >= 0 && nc < 格子数 && 棋盘[nr][nc] === 玩家) {
-                        if (dir === 0) {
-                            连线.push({r: nr, c: nc});
-                        } else {
-                            连线.unshift({r: nr, c: nc});
-                        }
-                    } else {
-                        break;
-                    }
+                        if (dir === 0) 连线.push({r:nr,c:nc}); else 连线.unshift({r:nr,c:nc});
+                    } else break;
                 }
             }
             if (连线.length >= 5) {
-                连线.sort(function(a, b) {
-                    if (a.r !== b.r) return a.r - b.r;
-                    return a.c - b.c;
-                });
-                // 确保正好5个连续
-                var 连续5 = [];
-                // 如果多于5个，取最后5个（或最有代表性的5个）
-                if (连线.length === 5) {
-                    连续5 = 连线;
-                } else {
-                    // 取包含 (r,c) 的连续5个
+                连线.sort(function(a,b){ return a.r !== b.r ? a.r - b.r : a.c - b.c; });
+                var 连续5;
+                if (连线.length === 5) { 连续5 = 连线; }
+                else {
                     for (var i = 0; i <= 连线.length - 5; i++) {
-                        var 包含落子 = false;
-                        for (var j = i; j < i + 5; j++) {
-                            if (连线[j].r === r && 连线[j].c === c) {
-                                包含落子 = true;
-                                break;
-                            }
-                        }
-                        if (包含落子) {
-                            连续5 = 连线.slice(i, i + 5);
-                            break;
-                        }
+                        var ok = false;
+                        for (var j = i; j < i + 5; j++) { if (连线[j].r === r && 连线[j].c === c) { ok = true; break; } }
+                        if (ok) { 连续5 = 连线.slice(i, i + 5); break; }
                     }
-                    if (连续5.length === 0) 连续5 = 连线.slice(0, 5);
+                    if (!连续5 || 连续5.length === 0) 连续5 = 连线.slice(0, 5);
                 }
                 获胜线 = 连续5;
                 return true;
@@ -1633,57 +1561,235 @@ function 初始化五子棋() {
         return false;
     }
 
-    function 落子(r, c) {
-        if (游戏结束 || 棋盘[r][c] !== 0) return;
+    function 落子(r, c, 来自网络) {
+        if (游戏结束 || 棋盘[r][c] !== 0) return false;
+        // 联机模式：不是自己回合不能落子
+        if (联机模式 && !来自网络 && 当前玩家 !== 我的颜色) return false;
+
         棋盘[r][c] = 当前玩家;
-        棋盘.最后落子 = {r: r, c: c};
+        棋盘.最后落子 = {r:r, c:c};
+
+        // 联机模式：发送给对方
+        if (联机模式 && !来自网络 && 已连接) {
+            连接.send({ type: 'move', r: r, c: c });
+        }
 
         if (检查胜利(r, c)) {
             游戏结束 = true;
             if (当前玩家 === 1) 黑方胜场++; else 白方胜场++;
             音效引擎.播放泡泡音();
-            绘制棋盘();
-            更新状态文字();
-            return;
+            绘制棋盘(); 更新状态文字();
+            return true;
         }
-
-        // 检查平局
         var 满了 = true;
         for (var rr = 0; rr < 格子数 && 满了; rr++)
             for (var cc = 0; cc < 格子数 && 满了; cc++)
-                if (棋盘[rr][cc] === 0) 满了 = false;
+                if (棋盘[rr][cc] === 0) { 满了 = false; break; }
         if (满了) {
             游戏结束 = true;
             状态元素.innerHTML = '🤝 <strong>平局！</strong>';
-            绘制棋盘();
-            更新状态文字();
-            return;
+            绘制棋盘(); 更新状态文字();
+            return true;
         }
-
         当前玩家 = 当前玩家 === 1 ? 2 : 1;
         音效引擎.播放点击音();
-        绘制棋盘();
-        更新状态文字();
+        绘制棋盘(); 更新状态文字();
+        return true;
     }
 
+    // ========== 联机逻辑 ==========
+    function 更新联机UI() {
+        if (联机模式) {
+            联机面板.style.display = 'block';
+            联机按钮.textContent = '💻 本地模式';
+            联机按钮.classList.add('联机模式中');
+            if (已连接) {
+                操作区.style.display = 'none';
+                房间信息区.style.display = 'flex';
+                断开按钮.style.display = 'inline-block';
+            } else {
+                操作区.style.display = 'block';
+                房间信息区.style.display = 'none';
+                断开按钮.style.display = 'none';
+            }
+        } else {
+            联机面板.style.display = 'none';
+            联机按钮.textContent = '🌐 联机对战';
+            联机按钮.classList.remove('联机模式中');
+            断开连接();
+        }
+    }
+
+    function 设置连接状态(灯类, 文字) {
+        状态灯.className = '联机状态灯 ' + 灯类;
+        状态文字.textContent = 文字;
+    }
+
+    function 初始化Peer() {
+        if (peer) { peer.destroy(); }
+        var id = 'gomoku-' + Math.random().toString(36).substr(2, 8);
+        peer = new Peer(id);
+        setConnectionListeners();
+        return id;
+    }
+
+    function setConnectionListeners() {
+        peer.on('open', function(myId) {
+            console.log('PeerJS ready:', myId);
+        });
+
+        peer.on('connection', function(conn) {
+            if (已连接) { conn.close(); return; }
+            连接 = conn;
+            建立连接(false);
+        });
+
+        peer.on('error', function(err) {
+            console.error('PeerJS error:', err);
+            设置连接状态('', '连接失败：' + err.type);
+        });
+    }
+
+    function 建立连接(我是发起方) {
+        已连接 = true;
+        我是房主 = 我是发起方;
+        我的颜色 = 我是发起方 ? 1 : 2; // 房主执黑先手
+
+        连接.on('data', function(data) {
+            if (data.type === 'move') {
+                当前玩家 = 我的颜色 === 1 ? 2 : 1;
+                落子(data.r, data.c, true);
+            } else if (data.type === 'reset') {
+                初始化棋盘();
+                棋盘.最后落子 = null;
+                绘制棋盘();
+                音效引擎.播放点击音();
+            } else if (data.type === 'ping') {
+                连接.send({ type: 'pong' });
+            }
+        });
+
+        连接.on('close', function() {
+            已连接 = false;
+            设置连接状态('', '对手已断开');
+            操作区.style.display = 'block';
+            房间信息区.style.display = 'none';
+            断开按钮.style.display = 'none';
+        });
+
+        connectionEstablished();
+    }
+
+    function connectionEstablished() {
+        设置连接状态('已连接', '已连接 — ' + (我是房主 ? '你执黑⚫先手' : '你执白⚪后手'));
+        更新联机UI();
+        初始化棋盘();
+        棋盘.最后落子 = null;
+        绘制棋盘();
+        // 发送 ping
+        if (连接 && 连接.open) 连接.send({ type: 'ping' });
+        音效引擎.播放泡泡音();
+    }
+
+    function 断开连接() {
+        if (连接) { try { 连接.close(); } catch(e) {} 连接 = null; }
+        if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
+        已连接 = false;
+        我是房主 = false;
+        我的颜色 = 0;
+        设置连接状态('', '未连接');
+        操作区.style.display = 'block';
+        房间信息区.style.display = 'none';
+        断开按钮.style.display = 'none';
+        初始化棋盘();
+        棋盘.最后落子 = null;
+        绘制棋盘();
+    }
+
+    // ========== 按钮事件 ==========
+    联机按钮.addEventListener('click', function() {
+        联机模式 = !联机模式;
+        更新联机UI();
+        if (联机模式) {
+            断开连接();
+            初始化Peer();
+            设置连接状态('', '等待创建或加入房间...');
+        } else {
+            断开连接();
+            初始化棋盘();
+            棋盘.最后落子 = null;
+            绘制棋盘();
+        }
+    });
+
+    document.getElementById('创建房间按钮').addEventListener('click', function() {
+        if (!peer) 初始化Peer();
+        peer.on('open', function(myId) {
+            房间号显示.textContent = myId;
+            设置连接状态('连接中', '等待对手加入...');
+            更新联机UI();
+            // 连接由 peer.on('connection') 处理
+        });
+        // 如果 peer 已经 open，直接显示
+        if (peer.id) {
+            房间号显示.textContent = peer.id;
+            设置连接状态('连接中', '等待对手加入...');
+            更新联机UI();
+        }
+    });
+
+    document.getElementById('加入房间按钮').addEventListener('click', function() {
+        var 房间号 = document.getElementById('房间号输入').value.trim();
+        if (!房间号) { alert('请输入房间号'); return; }
+        if (!peer) 初始化Peer();
+        设置连接状态('连接中', '正在连接...');
+        var conn = peer.connect(房间号, { reliable: true });
+        连接 = conn;
+        conn.on('open', function() {
+            建立连接(true);
+        });
+        conn.on('error', function() {
+            设置连接状态('', '连接失败，请检查房间号');
+        });
+    });
+
+    document.getElementById('断开联机按钮').addEventListener('click', function() {
+        断开连接();
+    });
+
+    document.getElementById('复制房间号').addEventListener('click', function() {
+        var 号 = 房间号显示.textContent;
+        if (号 && 号 !== '---') {
+            navigator.clipboard.writeText(号).then(function() {
+                alert('房间号已复制！发给朋友即可对战');
+            }).catch(function() {
+                prompt('复制此房间号发给朋友：', 号);
+            });
+        }
+    });
+
+    // ========== 画布点击 ==========
     画布.addEventListener('click', function (e) {
         var rect = 画布.getBoundingClientRect();
         var 缩放 = 画布.width / rect.width;
         var x = (e.clientX - rect.left) * 缩放;
         var y = (e.clientY - rect.top) * 缩放;
-
         var c = Math.round((x - 边距) / 格子大小);
         var r = Math.round((y - 边距) / 格子大小);
-
-        // 检查是否在有效范围内
         if (r < 0 || r >= 格子数 || c < 0 || c >= 格子数) return;
         var 距离 = Math.sqrt(Math.pow(x - 边距 - c * 格子大小, 2) + Math.pow(y - 边距 - r * 格子大小, 2));
         if (距离 > 棋子半径 + 2) return;
-
-        落子(r, c);
+        // 联机模式未连接时提示
+        if (联机模式 && !已连接) { alert('请先创建或加入房间'); return; }
+        落子(r, c, false);
     });
 
+    // 重置按钮（联机模式发送重置请求）
     document.getElementById('五子棋重置').addEventListener('click', function () {
+        if (联机模式 && 已连接 && !游戏结束) {
+            if (!confirm('确定要重开一局？')) return;
+            连接.send({ type: 'reset' });
+        }
         初始化棋盘();
         棋盘.最后落子 = null;
         绘制棋盘();

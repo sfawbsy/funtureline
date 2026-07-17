@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心灵驿站 — 你的在线解压空间</title>
     <link rel="stylesheet" href="样式/主样式.css">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
 
@@ -235,9 +236,37 @@
                     <span class="计数器">⚫ <strong id="黑方胜场">0</strong> 胜</span>
                     <span class="计数器">⚪ <strong id="白方胜场">0</strong> 胜</span>
                     <button class="按钮 小按钮" id="五子棋重置">🔄 新一局</button>
+                    <button class="按钮 小按钮" id="五子棋联机按钮" title="切换到联机对战">🌐 联机对战</button>
                 </div>
+
+                <!-- 联机面板 -->
+                <div class="五子棋联机面板" id="五子棋联机面板" style="display:none;">
+                    <div class="联机上部">
+                        <div class="联机信息">
+                            <span class="联机状态灯" id="联机状态灯"></span>
+                            <span id="联机状态文字">未连接</span>
+                        </div>
+                        <button class="按钮 小按钮" id="断开联机按钮" style="display:none;">🔌 断开</button>
+                    </div>
+                    <div class="联机操作区" id="联机操作区">
+                        <button class="按钮 主要按钮" id="创建房间按钮">🏠 创建房间</button>
+                        <div class="联机分隔">— 或 —</div>
+                        <div class="联机加入行">
+                            <input type="text" id="房间号输入" placeholder="输入房间号" maxlength="12">
+                            <button class="按钮 小按钮" id="加入房间按钮">🚪 加入</button>
+                        </div>
+                    </div>
+                    <div class="联机房间信息" id="联机房间信息" style="display:none;">
+                        <span>房间号：<strong id="房间号显示">---</strong></span>
+                        <button class="按钮 小按钮" id="复制房间号">📋 复制</button>
+                    </div>
+                </div>
+
                 <div class="五子棋容器">
                     <canvas id="五子棋画布" width="570" height="570"></canvas>
+                </div>
+            </div>
+
             <!-- 游戏8：俄罗斯方块 -->
             <div class="游戏面板" id="游戏-俄罗斯" style="display:none;">
                 <div class="游戏说明">

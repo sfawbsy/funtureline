@@ -893,7 +893,109 @@ a.贴士链接:hover .贴士图标 {
     text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* ---- 五子棋 ---- */
+/* ---- 五子棋联机 ---- */
+.五子棋联机面板 {
+    background: #f9fafb;
+    border: 2px solid #e0e4e8;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    max-width: 570px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.联机上部 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.联机信息 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+.联机状态灯 {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    display: inline-block;
+    transition: background 0.3s;
+}
+.联机状态灯.已连接 { background: #4caf50; box-shadow: 0 0 8px rgba(76,175,80,0.5); }
+.联机状态灯.连接中 { background: #ff9800; animation: 闪烁 1s infinite; }
+
+@keyframes 闪烁 {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.3; }
+}
+
+.联机操作区 {
+    text-align: center;
+}
+
+.联机分隔 {
+    color: #ccc;
+    font-size: 13px;
+    margin: 12px 0;
+}
+
+.联机加入行 {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.联机加入行 input {
+    padding: 8px 14px;
+    border: 2px solid #dde8e8;
+    border-radius: 20px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    width: 180px;
+    text-align: center;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.联机加入行 input:focus {
+    border-color: var(--主色);
+}
+
+.联机房间信息 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #dde8e8;
+    font-size: 14px;
+    color: #555;
+}
+
+.联机房间信息 strong {
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--主色);
+}
+
+/* 联机模式按钮高亮 */
+#五子棋联机按钮.联机模式中 {
+    background: #7c3aed;
+    color: #fff;
+    border-color: #7c3aed;
+}
+
+/* ---- 五子棋容器（已有，补max-width）---- */
 .五子棋容器 {
     display: flex;
     justify-content: center;
