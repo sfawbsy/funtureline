@@ -909,6 +909,80 @@ a.贴士链接:hover .贴士图标 {
     height: auto;
 }
 
+/* ---- 俄罗斯方块 ---- */
+.方块容器 {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.方块左侧 {
+    flex-shrink: 0;
+}
+
+#方块画布 {
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    background: #1a1a2e;
+    display: block;
+}
+
+.方块右侧 {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.方块预览区 {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+
+.方块小标题 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+#方块预览 {
+    display: block;
+    margin: 0 auto;
+    background: #1a1a2e;
+    border-radius: 4px;
+}
+
+.方块按键提示 {
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.8;
+    text-align: center;
+}
+
+/* ---- 俄罗斯方块移动端 ---- */
+@media (max-width: 768px) {
+    .方块容器 {
+        flex-direction: column;
+        align-items: center;
+    }
+    #方块画布 {
+        width: 280px;
+        height: 560px;
+    }
+    .方块右侧 {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    .方块按键提示 {
+        display: none;
+    }
+}
+
 /* ---- 2048 移动端 ---- */
 @media (max-width: 768px) {
     .网格2048 {

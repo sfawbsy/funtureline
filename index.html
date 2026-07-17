@@ -99,6 +99,7 @@
                 <button class="游戏标签" data-game="宠物">🐱 宠物养成</button>
                 <button class="游戏标签" data-game="2048">🔢 2048</button>
                 <button class="游戏标签" data-game="五子棋">⚫ 五子棋</button>
+                <button class="游戏标签" data-game="俄罗斯">🧱 俄罗斯方块</button>
             </div>
 
             <!-- 游戏1：捏泡泡 -->
@@ -237,6 +238,32 @@
                 </div>
                 <div class="五子棋容器">
                     <canvas id="五子棋画布" width="570" height="570"></canvas>
+            <!-- 游戏8：俄罗斯方块 -->
+            <div class="游戏面板" id="游戏-俄罗斯" style="display:none;">
+                <div class="游戏说明">
+                    <p>用<strong>方向键</strong>移动和旋转方块，填满整行即可消除！</p>
+                    <span class="计数器">得分：<strong id="方块分数">0</strong></span>
+                    <span class="计数器">等级：<strong id="方块等级">1</strong></span>
+                    <span class="计数器">行数：<strong id="方块行数">0</strong></span>
+                    <button class="按钮 小按钮" id="方块开始">▶️ 开始</button>
+                    <button class="按钮 小按钮" id="方块暂停" style="display:none;">⏸ 暂停</button>
+                </div>
+                <div class="方块容器">
+                    <div class="方块左侧">
+                        <canvas id="方块画布" width="300" height="600"></canvas>
+                    </div>
+                    <div class="方块右侧">
+                        <div class="方块预览区">
+                            <div class="方块小标题">下一个</div>
+                            <canvas id="方块预览" width="120" height="100"></canvas>
+                        </div>
+                        <div class="方块按键提示">
+                            <div>← → 移动</div>
+                            <div>↑ 旋转</div>
+                            <div>↓ 加速下落</div>
+                            <div>空格 直接落底</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

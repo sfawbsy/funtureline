@@ -491,6 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
     初始化宠物游戏();
     初始化2048();
     初始化五子棋();
+    初始化俄罗斯方块();
     初始化音频播放();
     初始化名言切换();
     初始化背景音乐();
@@ -1691,4 +1692,453 @@ function 初始化五子棋() {
     // 启动
     初始化棋盘();
     绘制棋盘();
+}
+
+
+/* ==========================================
+   14. 俄罗斯方块
+   ========================================== */
+function 初始化俄罗斯方块() {
+    var 画布 = document.getElementById('方块画布');
+    var ctx = 画布.getContext('2d');
+    var 预览画布 = document.getElementById('方块预览');
+    var 预览ctx = 预览画布.getContext('2d');
+
+    var 分数元素 = document.getElementById('方块分数');
+    var 等级元素 = document.getElementById('方块等级');
+    var 行数元素 = document.getElementById('方块行数');
+    var 开始按钮 = document.getElementById('方块开始');
+    var 暂停按钮 = document.getElementById('方块暂停');
+
+    var 列数 = 10;
+    var 行数 = 20;
+    var 格子 = 30;
+
+    // 颜色映射
+    var 颜色表 = {
+        I: '#00e5ff', O: '#ffea00', T: '#d500f9',
+        S: '#76ff03', Z: '#ff1744', J: '#2979ff', L: '#ff9100'
+    };
+    var 暗色表 = {
+        I: '#009faf', O: '#c7a000', T: '#7b00a0',
+        S: '#338800', Z: '#b00020', J: '#0040c0', L: '#c56000'
+    };
+
+    // 方块形状定义
+    var 方块类型 = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
+    var 形状表 = {
+        I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+        O: [[1,1],[1,1]],
+        T: [[0,1,0],[1,1,1],[0,0,0]],
+        S: [[0,1,1],[1,1,0],[0,0,0]],
+        Z: [[1,1,0],[0,1,1],[0,0,0]],
+        J: [[1,0,0],[1,1,1],[0,0,0]],
+        L: [[0,0,1],[1,1,1],[0,0,0]]
+    };
+
+    // 游戏状态
+    var 面板元素 = document.getElementById('游戏-俄罗斯');
+    var 棋盘 = [];
+    var 当前类型 = null;
+    var 当前形状 = null;
+    var 当前X = 0;
+    var 当前Y = 0;
+    var 下一个类型 = null;
+    var 分数 = 0;
+    var 等级 = 1;
+    var 消除行数 = 0;
+    var 游戏中 = false;
+    var 暂停中 = false;
+    var 游戏循环定时器 = null;
+
+    function 初始化棋盘() {
+        for (var r = 0; r < 行数; r++) {
+            棋盘[r] = [];
+            for (var c = 0; c < 列数; c++) {
+                棋盘[r][c] = null; // null 或颜色名如 'I','O'等
+            }
+        }
+    }
+
+    function 随机类型() {
+        return 方块类型[Math.floor(Math.random() * 方块类型.length)];
+    }
+
+    function 旋转形状(形状) {
+        var 大小 = 形状.length;
+        var 新形状 = [];
+        for (var r = 0; r < 大小; r++) {
+            新形状[r] = [];
+            for (var c = 0; c < 大小; c++) {
+                新形状[r][c] = 形状[大小 - 1 - c][r];
+            }
+        }
+        return 新形状;
+    }
+
+    function 生成方块(类型) {
+        return 形状表[类型].map(function (行) { return 行.slice(); });
+    }
+
+    function 碰撞检测(形状, x, y) {
+        for (var r = 0; r < 形状.length; r++) {
+            for (var c = 0; c < 形状[r].length; c++) {
+                if (!形状[r][c]) continue;
+                var 新X = x + c;
+                var 新Y = y + r;
+                if (新X < 0 || 新X >= 列数 || 新Y >= 行数) return true;
+                if (新Y < 0) continue;
+                if (棋盘[新Y][新X]) return true;
+            }
+        }
+        return false;
+    }
+
+    function 锁定方块() {
+        for (var r = 0; r < 当前形状.length; r++) {
+            for (var c = 0; c < 当前形状[r].length; c++) {
+                if (!当前形状[r][c]) continue;
+                var 棋盘Y = 当前Y + r;
+                var 棋盘X = 当前X + c;
+                if (棋盘Y < 0) {
+                    游戏结束();
+                    return;
+                }
+                棋盘[棋盘Y][棋盘X] = 当前类型;
+            }
+        }
+        清除行();
+        生成下一个();
+    }
+
+    function 清除行() {
+        var 消除 = 0;
+        for (var r = 行数 - 1; r >= 0; r--) {
+            var 满行 = true;
+            for (var c = 0; c < 列数; c++) {
+                if (!棋盘[r][c]) { 满行 = false; break; }
+            }
+            if (满行) {
+                // 闪光效果
+                棋盘[r] = 棋盘[r].map(function () { return 'flash'; });
+                绘制();
+                棋盘.splice(r, 1);
+                棋盘.unshift(new Array(列数).fill(null));
+                消除++;
+                r++; // 重新检查当前行
+            }
+        }
+        if (消除 > 0) {
+            var 加分 = [0, 100, 300, 500, 800];
+            分数 += (加分[消除] || 消除 * 200) * 等级;
+            消除行数 += 消除;
+            等级 = Math.floor(消除行数 / 10) + 1;
+            更新UI();
+            音效引擎.播放泡泡音();
+        }
+    }
+
+    function 生成下一个() {
+        if (下一个类型) {
+            当前类型 = 下一个类型;
+            当前形状 = 生成方块(当前类型);
+        } else {
+            当前类型 = 随机类型();
+            当前形状 = 生成方块(当前类型);
+        }
+        下一个类型 = 随机类型();
+        当前X = Math.floor((列数 - 当前形状[0].length) / 2);
+        当前Y = -1;
+
+        if (碰撞检测(当前形状, 当前X, 当前Y + 1)) {
+            当前Y = 0;
+            if (碰撞检测(当前形状, 当前X, 当前Y)) {
+                游戏结束();
+            }
+        }
+        绘制预览();
+    }
+
+    function 下落() {
+        if (!碰撞检测(当前形状, 当前X, 当前Y + 1)) {
+            当前Y++;
+            绘制();
+            return true;
+        }
+        锁定方块();
+        return false;
+    }
+
+    function 硬降() {
+        var 距离 = 0;
+        while (!碰撞检测(当前形状, 当前X, 当前Y + 1)) {
+            当前Y++;
+            距离++;
+        }
+        分数 += 距离 * 2;
+        锁定方块();
+        音效引擎.播放点击音();
+    }
+
+    function 移动(方向) {
+        if (!碰撞检测(当前形状, 当前X + 方向, 当前Y)) {
+            当前X += 方向;
+            绘制();
+            return true;
+        }
+        return false;
+    }
+
+    function 旋转() {
+        var 旋转后 = 旋转形状(当前形状);
+        // 踢墙：尝试左右偏移
+        var 偏移量 = [0, -1, 1, -2, 2];
+        for (var i = 0; i < 偏移量.length; i++) {
+            if (!碰撞检测(旋转后, 当前X + 偏移量[i], 当前Y)) {
+                当前形状 = 旋转后;
+                当前X += 偏移量[i];
+                绘制();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function 软降() {
+        if (下落()) {
+            分数 += 1;
+            更新UI();
+        }
+    }
+
+    function 绘制() {
+        if (暂停中) return;
+        ctx.clearRect(0, 0, 画布.width, 画布.height);
+
+        // 背景网格
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, 画布.width, 画布.height);
+        ctx.strokeStyle = '#2a2a4a';
+        ctx.lineWidth = 0.5;
+        for (var r = 0; r <= 行数; r++) {
+            ctx.beginPath();
+            ctx.moveTo(0, r * 格子);
+            ctx.lineTo(列数 * 格子, r * 格子);
+            ctx.stroke();
+        }
+        for (var c = 0; c <= 列数; c++) {
+            ctx.beginPath();
+            ctx.moveTo(c * 格子, 0);
+            ctx.lineTo(c * 格子, 行数 * 格子);
+            ctx.stroke();
+        }
+
+        // 已锁定的方块
+        for (var r = 0; r < 行数; r++) {
+            for (var c = 0; c < 列数; c++) {
+                if (棋盘[r][c]) {
+                    绘制格子(ctx, c, r, 棋盘[r][c]);
+                }
+            }
+        }
+
+        // 投影（ghost piece）
+        if (当前形状 && 游戏中) {
+            var 投影Y = 当前Y;
+            while (!碰撞检测(当前形状, 当前X, 投影Y + 1)) 投影Y++;
+            if (投影Y !== 当前Y) {
+                for (var r = 0; r < 当前形状.length; r++) {
+                    for (var c = 0; c < 当前形状[r].length; c++) {
+                        if (当前形状[r][c]) {
+                            ctx.fillStyle = 'rgba(255,255,255,0.12)';
+                            ctx.fillRect((当前X + c) * 格子 + 1, (投影Y + r) * 格子 + 1, 格子 - 2, 格子 - 2);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 当前方块
+        if (当前形状 && 游戏中) {
+            for (var r = 0; r < 当前形状.length; r++) {
+                for (var c = 0; c < 当前形状[r].length; c++) {
+                    if (当前形状[r][c]) {
+                        绘制格子(ctx, 当前X + c, 当前Y + r, 当前类型);
+                    }
+                }
+            }
+        }
+
+        // 暂停遮罩
+        if (暂停中) {
+            ctx.fillStyle = 'rgba(0,0,0,0.65)';
+            ctx.fillRect(0, 0, 画布.width, 画布.height);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 30px "Microsoft YaHei"';
+            ctx.textAlign = 'center';
+            ctx.fillText('⏸ 暂停中', 画布.width / 2, 画布.height / 2);
+        }
+    }
+
+    function 绘制格子(ctx, x, y, 类型) {
+        var px = x * 格子;
+        var py = y * 格子;
+        var color = 类型 === 'flash' ? '#fff' : 颜色表[类型];
+        var dark = 类型 === 'flash' ? '#ccc' : 暗色表[类型];
+
+        // 主体
+        ctx.fillStyle = color;
+        ctx.fillRect(px + 1, py + 1, 格子 - 2, 格子 - 2);
+
+        // 高光（左上）
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillRect(px + 1, py + 1, 格子 - 2, 4);
+        ctx.fillRect(px + 1, py + 1, 4, 格子 - 2);
+
+        // 阴影（右下）
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fillRect(px + 1, py + 格子 - 5, 格子 - 2, 4);
+        ctx.fillRect(px + 格子 - 5, py + 1, 4, 格子 - 2);
+    }
+
+    function 绘制预览() {
+        预览ctx.clearRect(0, 0, 预览画布.width, 预览画布.height);
+        预览ctx.fillStyle = '#1a1a2e';
+        预览ctx.fillRect(0, 0, 预览画布.width, 预览画布.height);
+
+        if (!下一个类型) return;
+        var 预览形状 = 形状表[下一个类型];
+        var 预览格子 = 24;
+        var 偏移X = (预览画布.width - 预览形状[0].length * 预览格子) / 2;
+        var 偏移Y = (预览画布.height - 预览形状.length * 预览格子) / 2;
+
+        for (var r = 0; r < 预览形状.length; r++) {
+            for (var c = 0; c < 预览形状[r].length; c++) {
+                if (预览形状[r][c]) {
+                    预览ctx.fillStyle = 颜色表[下一个类型];
+                    预览ctx.fillRect(偏移X + c * 预览格子 + 1, 偏移Y + r * 预览格子 + 1, 预览格子 - 2, 预览格子 - 2);
+                    预览ctx.fillStyle = 'rgba(255,255,255,0.25)';
+                    预览ctx.fillRect(偏移X + c * 预览格子 + 1, 偏移Y + r * 预览格子 + 1, 预览格子 - 2, 3);
+                    预览ctx.fillRect(偏移X + c * 预览格子 + 1, 偏移Y + r * 预览格子 + 1, 3, 预览格子 - 2);
+                }
+            }
+        }
+    }
+
+    function 更新UI() {
+        分数元素.textContent = 分数;
+        等级元素.textContent = 等级;
+        行数元素.textContent = 消除行数;
+    }
+
+    function 获取速度() {
+        return Math.max(50, 800 - (等级 - 1) * 70);
+    }
+
+    function 游戏循环() {
+        if (!游戏中 || 暂停中) return;
+        if (!下落()) {
+            // 下落失败由 下落() 内部处理
+        }
+        绘制();
+        更新UI();
+        游戏循环定时器 = setTimeout(游戏循环, 获取速度());
+    }
+
+    function 开始游戏() {
+        初始化棋盘();
+        分数 = 0;
+        等级 = 1;
+        消除行数 = 0;
+        当前形状 = null;
+        下一个类型 = null;
+        游戏中 = true;
+        暂停中 = false;
+        更新UI();
+        开始按钮.style.display = 'none';
+        暂停按钮.style.display = 'inline-block';
+        暂停按钮.textContent = '⏸ 暂停';
+        生成下一个();
+        绘制();
+        游戏循环定时器 = setTimeout(游戏循环, 获取速度());
+    }
+
+    function 游戏结束() {
+        游戏中 = false;
+        clearTimeout(游戏循环定时器);
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 画布.width, 画布.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 28px "Microsoft YaHei"';
+        ctx.textAlign = 'center';
+        ctx.fillText('游戏结束', 画布.width / 2, 画布.height / 2 - 15);
+        ctx.font = '18px "Microsoft YaHei"';
+        ctx.fillText('得分：' + 分数, 画布.width / 2, 画布.height / 2 + 25);
+        开始按钮.style.display = 'inline-block';
+        开始按钮.textContent = '🔄 再来一局';
+        暂停按钮.style.display = 'none';
+        音效引擎.播放吸气音();
+    }
+
+    function 切换暂停() {
+        if (!游戏中) return;
+        暂停中 = !暂停中;
+        if (暂停中) {
+            clearTimeout(游戏循环定时器);
+            暂停按钮.textContent = '▶️ 继续';
+            绘制();
+        } else {
+            暂停按钮.textContent = '⏸ 暂停';
+            绘制();
+            游戏循环定时器 = setTimeout(游戏循环, 获取速度());
+        }
+    }
+
+    // 键盘事件（需要检查面板是否可见）
+    document.addEventListener('keydown', function (e) {
+        if (面板元素.style.display === 'none') return;
+        if (!游戏中 || 暂停中) {
+            if (e.key === 'p' || e.key === 'P') { 切换暂停(); e.preventDefault(); }
+            return;
+        }
+        switch (e.key) {
+            case 'ArrowLeft':  e.preventDefault(); 移动(-1); 音效引擎.播放点击音(); break;
+            case 'ArrowRight': e.preventDefault(); 移动(1); 音效引擎.播放点击音(); break;
+            case 'ArrowDown':  e.preventDefault(); 软降(); 音效引擎.播放点击音(); break;
+            case 'ArrowUp':    e.preventDefault(); 旋转(); 音效引擎.播放点击音(); break;
+            case ' ':          e.preventDefault(); 硬降(); break;
+            case 'p': case 'P': 切换暂停(); e.preventDefault(); break;
+        }
+    });
+
+    // 触摸支持
+    var 触摸起始X = 0, 触摸起始Y = 0;
+    画布.addEventListener('touchstart', function (e) {
+        if (!游戏中 || 暂停中) return;
+        触摸起始X = e.touches[0].clientX;
+        触摸起始Y = e.touches[0].clientY;
+    }, { passive: true });
+
+    画布.addEventListener('touchend', function (e) {
+        if (!游戏中 || 暂停中) return;
+        var dx = e.changedTouches[0].clientX - 触摸起始X;
+        var dy = e.changedTouches[0].clientY - 触摸起始Y;
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+            旋转(); // tap to rotate
+        } else if (Math.abs(dx) > Math.abs(dy)) {
+            if (dx > 20) 移动(1); else if (dx < -20) 移动(-1);
+        } else {
+            if (dy > 20) 软降();
+        }
+        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) 音效引擎.播放点击音();
+        触摸起始X = 0; 触摸起始Y = 0;
+    });
+
+    开始按钮.addEventListener('click', 开始游戏);
+    暂停按钮.addEventListener('click', 切换暂停);
+
+    // 初始状态
+    初始化棋盘();
+    绘制();
+    绘制预览();
 }
