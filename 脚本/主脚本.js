@@ -489,6 +489,8 @@ document.addEventListener('DOMContentLoaded', function () {
     初始化呼吸引导();
     初始化点击游戏();
     初始化宠物游戏();
+    初始化2048();
+    初始化五子棋();
     初始化音频播放();
     初始化名言切换();
     初始化背景音乐();
@@ -938,58 +940,130 @@ function 初始化宠物游戏() {
 
     var 表情元素 = document.getElementById('宠物表情');
     var 名字元素 = document.getElementById('宠物名字');
+    var 等级元素 = document.getElementById('宠物等级');
+    var 阶段元素 = document.getElementById('宠物阶段');
     var 气泡元素 = document.getElementById('宠物气泡');
+    var 升级特效 = document.getElementById('升级特效');
 
     var 饱腹条 = document.getElementById('饱腹条');
     var 开心条 = document.getElementById('开心条');
     var 精力条 = document.getElementById('精力条');
+    var 经验条 = document.getElementById('经验条');
     var 饱腹值 = document.getElementById('饱腹值');
     var 开心值 = document.getElementById('开心值');
     var 精力值 = document.getElementById('精力值');
+    var 经验值元素 = document.getElementById('经验值');
 
-    // 从本地存储恢复或初始化
+    // ========== 进化阶段表 ==========
+    function 获取外观(等级) {
+        if (等级 >= 20) return { emoji: '🐉', stage: '传说喵神' };
+        if (等级 >= 16) return { emoji: '🦁', stage: '威猛狮王' };
+        if (等级 >= 13) return { emoji: '🐆', stage: '迅捷灵猫' };
+        if (等级 >= 10) return { emoji: '😸', stage: '快乐大喵' };
+        if (等级 >= 7)  return { emoji: '🐈', stage: '优雅猫咪' };
+        if (等级 >= 4)  return { emoji: '😺', stage: '可爱小猫' };
+        return { emoji: '🐱', stage: '小奶猫' };
+    }
+
+    function 计算升级经验(等级) {
+        return 等级 * 100 + 50;
+    }
+
+    // ========== 存档系统 ==========
     var 数据 = 读取存档();
     var 饱腹 = 数据.饱腹;
     var 开心 = 数据.开心;
     var 精力 = 数据.精力;
     var 宠物名 = 数据.名字;
+    var 等级 = 数据.等级 || 1;
+    var 经验 = 数据.经验 || 0;
+    var 之前等级 = 等级;  // 用于检测升级
 
     function 读取存档() {
         try {
             var raw = localStorage.getItem('pet_data');
             if (raw) return JSON.parse(raw);
         } catch(e) {}
-        return { 饱腹: 100, 开心: 100, 精力: 100, 名字: '小团子' };
+        return { 饱腹: 100, 开心: 100, 精力: 100, 名字: '小团子', 等级: 1, 经验: 0 };
     }
 
     function 保存存档() {
         try {
             localStorage.setItem('pet_data', JSON.stringify({
-                饱腹: 饱腹, 开心: 开心, 精力: 精力, 名字: 宠物名
+                饱腹: 饱腹, 开心: 开心, 精力: 精力,
+                名字: 宠物名, 等级: 等级, 经验: 经验
             }));
         } catch(e) {}
     }
 
+    // ========== UI 刷新 ==========
     function 刷新UI() {
         饱腹条.style.width = 饱腹 + '%';
         开心条.style.width = 开心 + '%';
         精力条.style.width = 精力 + '%';
-        饱腹值.textContent = 饱腹;
-        开心值.textContent = 开心;
-        精力值.textContent = 精力;
+        饱腹值.textContent = Math.round(饱腹);
+        开心值.textContent = Math.round(开心);
+        精力值.textContent = Math.round(精力);
         名字元素.textContent = 宠物名;
-        更新表情();
+
+        // 等级 & 外观
+        var 外观 = 获取外观(等级);
+        等级元素.textContent = 'Lv.' + 等级;
+        阶段元素.textContent = 外观.stage;
+        表情元素.textContent = 外观.emoji;
+
+        // 经验条
+        var 需要 = 计算升级经验(等级);
+        var 百分比 = Math.min(100, (经验 / 需要) * 100);
+        经验条.style.width = 百分比 + '%';
+        经验值元素.textContent = 经验 + '/' + 需要;
+
+        // 满级
+        if (等级 >= 30) {
+            经验条.style.width = '100%';
+            经验值元素.textContent = 'MAX';
+            阶段元素.textContent = '⭐ 满级至尊 ⭐';
+        }
     }
 
-    function 更新表情() {
-        var 平均 = (饱腹 + 开心 + 精力) / 3;
-        if (平均 >= 80) 表情元素.textContent = '😸';
-        else if (平均 >= 60) 表情元素.textContent = '😺';
-        else if (平均 >= 40) 表情元素.textContent = '😿';
-        else if (平均 >= 20) 表情元素.textContent = '😾';
-        else 表情元素.textContent = '💀';
+    // ========== 经验 & 升级 ==========
+    function 增加经验(数量) {
+        if (等级 >= 30) return false;  // 满级不再加经验
+        经验 += 数量;
+        var 升级了 = false;
+        while (经验 >= 计算升级经验(等级) && 等级 < 30) {
+            经验 -= 计算升级经验(等级);
+            等级++;
+            升级了 = true;
+        }
+        if (升级了) {
+            触发升级动画();
+        }
+        return 升级了;
     }
 
+    function 触发升级动画() {
+        var 外观 = 获取外观(等级);
+        // 飘字特效
+        升级特效.querySelector('.升级文字').textContent = '🎉 升级了！';
+        升级特效.style.display = 'flex';
+        升级特效.classList.remove('播放');
+        void 升级特效.offsetWidth;  // 强制回流
+        升级特效.classList.add('播放');
+
+        // 宠物抖动
+        表情元素.classList.add('进化中');
+        setTimeout(function () {
+            升级特效.style.display = 'none';
+            表情元素.classList.remove('进化中');
+        }, 1500);
+
+        显示气泡('✨ 进化成 ' + 外观.stage + ' 啦！');
+        音效引擎.播放泡泡音();
+        setTimeout(function () { 音效引擎.播放泡泡音(); }, 200);
+    }
+
+    // ========== 气泡 ==========
     function 显示气泡(文字) {
         气泡元素.textContent = 文字;
         气泡元素.classList.add('显示');
@@ -999,12 +1073,14 @@ function 初始化宠物游戏() {
         }, 2000);
     }
 
+    // ========== 操作 ==========
     // 喂食
     document.getElementById('喂食按钮').addEventListener('click', function () {
         if (精力 <= 5) { 显示气泡('太累了，先睡会儿吧 💤'); return; }
         饱腹 = Math.min(100, 饱腹 + 25);
         开心 = Math.min(100, 开心 + 5);
         精力 = Math.max(0, 精力 - 5);
+        增加经验(30);
         保存存档(); 刷新UI();
         显示气泡('好好吃！再来一点~ 🍖');
         音效引擎.播放点击音();
@@ -1017,6 +1093,7 @@ function 初始化宠物游戏() {
         开心 = Math.min(100, 开心 + 30);
         精力 = Math.max(0, 精力 - 15);
         饱腹 = Math.max(0, 饱腹 - 8);
+        增加经验(40);
         保存存档(); 刷新UI();
         var 反应 = ['好开心！', '再玩一会儿~', '嘻嘻！', '你是我最好的朋友 ❤️'];
         显示气泡(反应[Math.floor(Math.random() * 反应.length)]);
@@ -1028,26 +1105,22 @@ function 初始化宠物游戏() {
         精力 = Math.min(100, 精力 + 50);
         饱腹 = Math.max(0, 饱腹 - 10);
         开心 = Math.min(100, 开心 + 10);
+        增加经验(20);
         保存存档(); 刷新UI();
         显示气泡('zzZ... 好舒服 💤');
         音效引擎.播放吸气音();
     });
 
-    // 点击宠物
+    // 抚摸宠物
     表情元素.addEventListener('click', function () {
-        var 平均 = (饱腹 + 开心 + 精力) / 3;
-        if (平均 >= 70) {
-            var 反应列表 = ['喵~', '呼噜呼噜...', '蹭蹭你~', '❤️'];
-            var 反应 = 反应列表[Math.floor(Math.random() * 反应列表.length)];
-            显示气泡(反应);
-            开心 = Math.min(100, 开心 + 3);
-            音效引擎.播放点击音();
-        } else if (平均 >= 30) {
-            显示气泡('嗯...不太舒服');
-        } else {
-            显示气泡('救救我... 😢');
-        }
+        开心 = Math.min(100, 开心 + 3);
+        增加经验(10);
         保存存档(); 刷新UI();
+        var 外观 = 获取外观(等级);
+        var 反应列表 = ['喵~', '呼噜呼噜...', '蹭蹭你~', '❤️', 外观.stage + '喜欢你！'];
+        var 反应 = 反应列表[Math.floor(Math.random() * 反应列表.length)];
+        显示气泡(反应);
+        音效引擎.播放点击音();
     });
 
     // 改名
@@ -1073,6 +1146,7 @@ function 初始化宠物游戏() {
         document.getElementById('改名区域').style.display = 'none';
     });
 
+    // ========== 计时衰减 ==========
     function 计时扣除() {
         if (面板.style.display === 'none') return;
         饱腹 = Math.max(0, 饱腹 - 1);
@@ -1089,5 +1163,532 @@ function 初始化宠物游戏() {
     setInterval(计时扣除, 5000);
 
     刷新UI();
-    显示气泡('你好呀~ 陪我玩吧！');
+    var 初始外观 = 获取外观(等级);
+    显示气泡('Lv.' + 等级 + ' ' + 初始外观.stage + '~ 陪我玩吧！');
+}
+
+
+/* ==========================================
+   12. 2048 游戏
+   ========================================== */
+function 初始化2048() {
+    var 网格元素 = document.getElementById('网格2048');
+    var 分数元素 = document.getElementById('2048分数');
+    var 最高分元素 = document.getElementById('2048最高分');
+    var 覆盖层 = document.getElementById('2048覆盖');
+    var 覆盖文字 = document.getElementById('2048覆盖文字');
+
+    var 格子元素 = [];   // 4x4 DOM 元素
+    var 格子值 = [];     // 4x4 数值
+    var 分数 = 0;
+    var 最高分 = 0;
+    var 游戏结束 = false;
+    var 已达2048 = false;
+
+    // 读取最高分
+    try {
+        var raw = localStorage.getItem('2048_high_score');
+        if (raw) 最高分 = parseInt(raw);
+    } catch(e) {}
+    最高分元素.textContent = 最高分;
+
+    // 创建网格 DOM
+    function 创建网格DOM() {
+        网格元素.innerHTML = '';
+        格子元素 = [];
+        for (var r = 0; r < 4; r++) {
+            格子元素[r] = [];
+            for (var c = 0; c < 4; c++) {
+                var 格子 = document.createElement('div');
+                格子.className = '格子2048';
+                格子元素[r][c] = 格子;
+                网格元素.appendChild(格子);
+            }
+        }
+    }
+
+    function 刷新DOM() {
+        for (var r = 0; r < 4; r++) {
+            for (var c = 0; c < 4; c++) {
+                var 值 = 格子值[r][c];
+                var 格子 = 格子元素[r][c];
+                格子.textContent = 值 || '';
+                格子.setAttribute('data-value', 值 || '');
+            }
+        }
+        分数元素.textContent = 分数;
+        if (分数 > 最高分) {
+            最高分 = 分数;
+            最高分元素.textContent = 最高分;
+            try { localStorage.setItem('2048_high_score', 最高分); } catch(e) {}
+        }
+    }
+
+    function 随机空格() {
+        var 空列表 = [];
+        for (var r = 0; r < 4; r++)
+            for (var c = 0; c < 4; c++)
+                if (格子值[r][c] === 0) 空列表.push({r: r, c: c});
+        if (空列表.length === 0) return null;
+        return 空列表[Math.floor(Math.random() * 空列表.length)];
+    }
+
+    function 添加随机格子() {
+        var 位置 = 随机空格();
+        if (!位置) return;
+        格子值[位置.r][位置.c] = Math.random() < 0.9 ? 2 : 4;
+        // 动画
+        var 格子 = 格子元素[位置.r][位置.c];
+        格子.classList.add('新合并');
+        setTimeout(function () { 格子.classList.remove('新合并'); }, 200);
+    }
+
+    function 初始化格子值() {
+        格子值 = [];
+        for (var r = 0; r < 4; r++) {
+            格子值[r] = [0, 0, 0, 0];
+        }
+    }
+
+    function 新游戏() {
+        初始化格子值();
+        分数 = 0;
+        游戏结束 = false;
+        已达2048 = false;
+        覆盖层.style.display = 'none';
+        添加随机格子();
+        添加随机格子();
+        刷新DOM();
+    }
+
+    // 移动逻辑
+    function 旋转矩阵(矩阵, 次数) {
+        var 结果 = 矩阵;
+        for (var t = 0; t < 次数; t++) {
+            var 新矩阵 = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+            for (var r = 0; r < 4; r++)
+                for (var c = 0; c < 4; c++)
+                    新矩阵[c][3-r] = 结果[r][c];
+            结果 = 新矩阵;
+        }
+        return 结果;
+    }
+
+    function 左移一行(行) {
+        // 先去掉0
+        var 紧凑 = [];
+        for (var i = 0; i < 4; i++) {
+            if (行[i] !== 0) 紧凑.push(行[i]);
+        }
+        // 合并相邻相同
+        var 结果 = [];
+        var 得分增量 = 0;
+        for (var i = 0; i < 紧凑.length; i++) {
+            if (i < 紧凑.length - 1 && 紧凑[i] === 紧凑[i+1]) {
+                结果.push(紧凑[i] * 2);
+                得分增量 += 紧凑[i] * 2;
+                i++; // 跳过下一个
+            } else {
+                结果.push(紧凑[i]);
+            }
+        }
+        // 补0到4个
+        while (结果.length < 4) 结果.push(0);
+        return { 行: 结果, 得分: 得分增量 };
+    }
+
+    function 移动(方向) {
+        // 方向: 0=左, 1=上, 2=右, 3=下
+        // 通过旋转把不同方向都变成"左移"
+        var 旋转次数;
+        switch (方向) {
+            case 0: 旋转次数 = 0; break; // 左
+            case 1: 旋转次数 = 1; break; // 上
+            case 2: 旋转次数 = 2; break; // 右
+            case 3: 旋转次数 = 3; break; // 下
+        }
+
+        var 旋转后 = 旋转矩阵(格子值, 旋转次数);
+        var 移动了 = false;
+        var 总分 = 0;
+
+        for (var r = 0; r < 4; r++) {
+            var 原行 = 旋转后[r];
+            var 结果 = 左移一行(原行);
+            if (结果.行.join(',') !== 原行.join(',')) 移动了 = true;
+            旋转后[r] = 结果.行;
+            总分 += 结果.得分;
+        }
+
+        if (!移动了) return false;
+
+        格子值 = 旋转矩阵(旋转后, (4 - 旋转次数) % 4);
+        分数 += 总分;
+
+        // 检查2048
+        if (!已达2048) {
+            for (var r = 0; r < 4; r++)
+                for (var c = 0; c < 4; c++)
+                    if (格子值[r][c] === 2048) { 已达2048 = true; break; }
+        }
+
+        添加随机格子();
+        刷新DOM();
+
+        // 检查失败
+        if (!有可用移动()) {
+            游戏结束 = true;
+            setTimeout(function () {
+                覆盖文字.textContent = 已达2048 ? '🎉 你赢了！' : '游戏结束';
+                覆盖层.style.display = 'flex';
+            }, 300);
+        }
+
+        return true;
+    }
+
+    function 有可用移动() {
+        // 有空位
+        for (var r = 0; r < 4; r++)
+            for (var c = 0; c < 4; c++)
+                if (格子值[r][c] === 0) return true;
+        // 有相邻相同
+        for (var r = 0; r < 4; r++)
+            for (var c = 0; c < 4; c++) {
+                if (c < 3 && 格子值[r][c] === 格子值[r][c+1]) return true;
+                if (r < 3 && 格子值[r][c] === 格子值[r+1][c]) return true;
+            }
+        return false;
+    }
+
+    // 键盘事件
+    document.addEventListener('keydown', function (e) {
+        var 面板 = document.getElementById('游戏-2048');
+        if (面板.style.display === 'none' || 游戏结束) return;
+        var 方向;
+        switch (e.key) {
+            case 'ArrowLeft':  方向 = 0; break;
+            case 'ArrowUp':    方向 = 1; break;
+            case 'ArrowRight': 方向 = 2; break;
+            case 'ArrowDown':  方向 = 3; break;
+            default: return;
+        }
+        e.preventDefault();
+        if (移动(方向)) 音效引擎.播放点击音();
+    });
+
+    // 触摸滑动
+    var 触摸起始 = null;
+    网格元素.addEventListener('touchstart', function (e) {
+        if (游戏结束) return;
+        触摸起始 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }, { passive: true });
+
+    网格元素.addEventListener('touchend', function (e) {
+        if (!触摸起始 || 游戏结束) return;
+        var dx = e.changedTouches[0].clientX - 触摸起始.x;
+        var dy = e.changedTouches[0].clientY - 触摸起始.y;
+        var 最小距离 = 30;
+        if (Math.abs(dx) < 最小距离 && Math.abs(dy) < 最小距离) return;
+
+        var 方向;
+        if (Math.abs(dx) > Math.abs(dy)) {
+            方向 = dx > 0 ? 2 : 0; // 右 : 左
+        } else {
+            方向 = dy > 0 ? 3 : 1; // 下 : 上
+        }
+        if (移动(方向)) 音效引擎.播放点击音();
+        触摸起始 = null;
+    });
+
+    document.getElementById('2048新游戏').addEventListener('click', 新游戏);
+    document.getElementById('2048重来').addEventListener('click', 新游戏);
+
+    // 启动
+    创建网格DOM();
+    新游戏();
+}
+
+
+/* ==========================================
+   13. 五子棋（双人对弈）
+   ========================================== */
+function 初始化五子棋() {
+    var 画布 = document.getElementById('五子棋画布');
+    var ctx = 画布.getContext('2d');
+    var 状态元素 = document.getElementById('五子棋状态');
+    var 黑方胜场元素 = document.getElementById('黑方胜场');
+    var 白方胜场元素 = document.getElementById('白方胜场');
+
+    var 格子数 = 15;
+    var 格子大小 = 35;
+    var 边距 = 40;
+    var 棋子半径 = 14;
+    var 棋盘 = [];        // 15x15, 0=空, 1=黑, 2=白
+    var 当前玩家 = 1;     // 1=黑, 2=白
+    var 游戏结束 = false;
+    var 获胜线 = null;    // [{r,c}, ...] 获胜的5个位置
+    var 黑方胜场 = 0;
+    var 白方胜场 = 0;
+
+    function 初始化棋盘() {
+        棋盘 = [];
+        for (var r = 0; r < 格子数; r++) {
+            棋盘[r] = [];
+            for (var c = 0; c < 格子数; c++) {
+                棋盘[r][c] = 0;
+            }
+        }
+        当前玩家 = 1;
+        游戏结束 = false;
+        获胜线 = null;
+        更新状态文字();
+    }
+
+    function 更新状态文字() {
+        if (游戏结束) {
+            var 胜者 = 当前玩家 === 1 ? '⚪ 白方' : '⚫ 黑方';
+            状态元素.innerHTML = '🏆 <strong>' + 胜者 + '获胜！</strong>';
+        } else {
+            var 玩家名 = 当前玩家 === 1 ? '⚫ 黑方' : '⚪ 白方';
+            状态元素.innerHTML = '轮到：<strong>' + 玩家名 + '</strong>';
+        }
+        黑方胜场元素.textContent = 黑方胜场;
+        白方胜场元素.textContent = 白方胜场;
+    }
+
+    function 绘制棋盘() {
+        var 画布尺寸 = 边距 * 2 + 格子大小 * (格子数 - 1);
+        画布.width = 画布尺寸;
+        画布.height = 画布尺寸;
+
+        // 背景
+        ctx.fillStyle = '#dcb468';
+        ctx.fillRect(0, 0, 画布尺寸, 画布尺寸);
+
+        // 网格线
+        ctx.strokeStyle = '#5a4a3a';
+        ctx.lineWidth = 1;
+        for (var i = 0; i < 格子数; i++) {
+            var 坐标 = 边距 + i * 格子大小;
+            // 横线
+            ctx.beginPath();
+            ctx.moveTo(边距, 坐标);
+            ctx.lineTo(边距 + 格子大小 * (格子数 - 1), 坐标);
+            ctx.stroke();
+            // 竖线
+            ctx.beginPath();
+            ctx.moveTo(坐标, 边距);
+            ctx.lineTo(坐标, 边距 + 格子大小 * (格子数 - 1));
+            ctx.stroke();
+        }
+
+        // 星位点（天元和四星）
+        var 星位 = [
+            [3,3], [3,7], [3,11],
+            [7,3], [7,7], [7,11],
+            [11,3], [11,7], [11,11]
+        ];
+        ctx.fillStyle = '#5a4a3a';
+        for (var s = 0; s < 星位.length; s++) {
+            var 星 = 星位[s];
+            var x = 边距 + 星[0] * 格子大小;
+            var y = 边距 + 星[1] * 格子大小;
+            ctx.beginPath();
+            ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 绘制棋子
+        for (var r = 0; r < 格子数; r++) {
+            for (var c = 0; c < 格子数; c++) {
+                if (棋盘[r][c] === 0) continue;
+                var x = 边距 + c * 格子大小;
+                var y = 边距 + r * 格子大小;
+
+                // 阴影
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.arc(x + 1.5, y + 1.5, 棋子半径, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 棋子本体
+                var 渐变 = ctx.createRadialGradient(x - 4, y - 4, 2, x, y, 棋子半径);
+                if (棋盘[r][c] === 1) {
+                    渐变.addColorStop(0, '#555');
+                    渐变.addColorStop(0.6, '#222');
+                    渐变.addColorStop(1, '#000');
+                } else {
+                    渐变.addColorStop(0, '#fff');
+                    渐变.addColorStop(0.6, '#eee');
+                    渐变.addColorStop(1, '#ccc');
+                }
+                ctx.fillStyle = 渐变;
+                ctx.beginPath();
+                ctx.arc(x, y, 棋子半径, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // 高亮获胜线
+        if (获胜线 && 获胜线.length === 5) {
+            ctx.strokeStyle = '#ff4444';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            var 首 = 获胜线[0];
+            ctx.moveTo(边距 + 首.c * 格子大小, 边距 + 首.r * 格子大小);
+            for (var i = 1; i < 获胜线.length; i++) {
+                ctx.lineTo(边距 + 获胜线[i].c * 格子大小, 边距 + 获胜线[i].r * 格子大小);
+            }
+            ctx.stroke();
+
+            // 获胜棋子加光环
+            for (var i = 0; i < 获胜线.length; i++) {
+                var w = 获胜线[i];
+                var wx = 边距 + w.c * 格子大小;
+                var wy = 边距 + w.r * 格子大小;
+                ctx.strokeStyle = '#ff4444';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(wx, wy, 棋子半径 + 3, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        // 最后落子标记
+        if (!游戏结束 && 棋盘.最后落子) {
+            var 落 = 棋盘.最后落子;
+            var lx = 边距 + 落.c * 格子大小;
+            var ly = 边距 + 落.r * 格子大小;
+            ctx.fillStyle = '#ff4444';
+            ctx.beginPath();
+            ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function 检查胜利(r, c) {
+        var 玩家 = 棋盘[r][c];
+        if (玩家 === 0) return false;
+
+        var 方向组 = [
+            [{dr: 0, dc: 1}, {dr: 0, dc: -1}],   // 水平
+            [{dr: 1, dc: 0}, {dr: -1, dc: 0}],   // 垂直
+            [{dr: 1, dc: 1}, {dr: -1, dc: -1}],  // 对角线
+            [{dr: 1, dc: -1}, {dr: -1, dc: 1}]   // 反对角线
+        ];
+
+        for (var d = 0; d < 方向组.length; d++) {
+            var 连线 = [{r: r, c: c}];
+            for (var dir = 0; dir < 2; dir++) {
+                var dr = 方向组[d][dir].dr;
+                var dc = 方向组[d][dir].dc;
+                for (var step = 1; step < 5; step++) {
+                    var nr = r + dr * step;
+                    var nc = c + dc * step;
+                    if (nr >= 0 && nr < 格子数 && nc >= 0 && nc < 格子数 && 棋盘[nr][nc] === 玩家) {
+                        if (dir === 0) {
+                            连线.push({r: nr, c: nc});
+                        } else {
+                            连线.unshift({r: nr, c: nc});
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+            if (连线.length >= 5) {
+                连线.sort(function(a, b) {
+                    if (a.r !== b.r) return a.r - b.r;
+                    return a.c - b.c;
+                });
+                // 确保正好5个连续
+                var 连续5 = [];
+                // 如果多于5个，取最后5个（或最有代表性的5个）
+                if (连线.length === 5) {
+                    连续5 = 连线;
+                } else {
+                    // 取包含 (r,c) 的连续5个
+                    for (var i = 0; i <= 连线.length - 5; i++) {
+                        var 包含落子 = false;
+                        for (var j = i; j < i + 5; j++) {
+                            if (连线[j].r === r && 连线[j].c === c) {
+                                包含落子 = true;
+                                break;
+                            }
+                        }
+                        if (包含落子) {
+                            连续5 = 连线.slice(i, i + 5);
+                            break;
+                        }
+                    }
+                    if (连续5.length === 0) 连续5 = 连线.slice(0, 5);
+                }
+                获胜线 = 连续5;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function 落子(r, c) {
+        if (游戏结束 || 棋盘[r][c] !== 0) return;
+        棋盘[r][c] = 当前玩家;
+        棋盘.最后落子 = {r: r, c: c};
+
+        if (检查胜利(r, c)) {
+            游戏结束 = true;
+            if (当前玩家 === 1) 黑方胜场++; else 白方胜场++;
+            音效引擎.播放泡泡音();
+            绘制棋盘();
+            更新状态文字();
+            return;
+        }
+
+        // 检查平局
+        var 满了 = true;
+        for (var rr = 0; rr < 格子数 && 满了; rr++)
+            for (var cc = 0; cc < 格子数 && 满了; cc++)
+                if (棋盘[rr][cc] === 0) 满了 = false;
+        if (满了) {
+            游戏结束 = true;
+            状态元素.innerHTML = '🤝 <strong>平局！</strong>';
+            绘制棋盘();
+            更新状态文字();
+            return;
+        }
+
+        当前玩家 = 当前玩家 === 1 ? 2 : 1;
+        音效引擎.播放点击音();
+        绘制棋盘();
+        更新状态文字();
+    }
+
+    画布.addEventListener('click', function (e) {
+        var rect = 画布.getBoundingClientRect();
+        var 缩放 = 画布.width / rect.width;
+        var x = (e.clientX - rect.left) * 缩放;
+        var y = (e.clientY - rect.top) * 缩放;
+
+        var c = Math.round((x - 边距) / 格子大小);
+        var r = Math.round((y - 边距) / 格子大小);
+
+        // 检查是否在有效范围内
+        if (r < 0 || r >= 格子数 || c < 0 || c >= 格子数) return;
+        var 距离 = Math.sqrt(Math.pow(x - 边距 - c * 格子大小, 2) + Math.pow(y - 边距 - r * 格子大小, 2));
+        if (距离 > 棋子半径 + 2) return;
+
+        落子(r, c);
+    });
+
+    document.getElementById('五子棋重置').addEventListener('click', function () {
+        初始化棋盘();
+        棋盘.最后落子 = null;
+        绘制棋盘();
+    });
+
+    // 启动
+    初始化棋盘();
+    绘制棋盘();
 }

@@ -97,6 +97,8 @@
                 <button class="游戏标签" data-game="呼吸">🌬️ 呼吸引导</button>
                 <button class="游戏标签" data-game="计数">🔢 疯狂点击</button>
                 <button class="游戏标签" data-game="宠物">🐱 宠物养成</button>
+                <button class="游戏标签" data-game="2048">🔢 2048</button>
+                <button class="游戏标签" data-game="五子棋">⚫ 五子棋</button>
             </div>
 
             <!-- 游戏1：捏泡泡 -->
@@ -160,9 +162,19 @@
                     <div class="宠物展示" id="宠物展示">
                         <div class="宠物表情" id="宠物表情">🐱</div>
                         <div class="宠物名字" id="宠物名字">小团子</div>
+                        <div class="宠物等级" id="宠物等级">Lv.1</div>
+                        <div class="宠物阶段" id="宠物阶段">小奶猫</div>
                         <div class="宠物气泡" id="宠物气泡">你好呀~</div>
+                        <div class="升级特效" id="升级特效" style="display:none;">
+                            <span class="升级文字">🎉 升级了！</span>
+                        </div>
                     </div>
                     <div class="宠物状态区">
+                        <div class="状态条 经验条容器">
+                            <span class="状态标签">⭐ 经验</span>
+                            <div class="状态条背景"><div class="状态条进度 经验进度" id="经验条"></div></div>
+                            <span class="状态数值" id="经验值">0/150</span>
+                        </div>
                         <div class="状态条">
                             <span class="状态标签">🍖 饱腹</span>
                             <div class="状态条背景"><div class="状态条进度 饱腹条" id="饱腹条"></div></div>
@@ -190,6 +202,39 @@
                         <button class="按钮 小按钮" id="确认改名">确定</button>
                         <button class="按钮 小按钮" id="取消改名">取消</button>
                     </div>
+                </div>
+            <!-- 游戏6：2048 -->
+            <div class="游戏面板" id="游戏-2048" style="display:none;">
+                <div class="游戏说明">
+                    <p>用<strong>方向键</strong>或<strong>滑动</strong>移动方块，相同数字合并，达成 <strong>2048</strong>！</p>
+                    <span class="计数器">得分：<strong id="2048分数">0</strong></span>
+                    <span class="计数器">最高：<strong id="2048最高分">0</strong></span>
+                    <button class="按钮 小按钮" id="2048新游戏">🔄 新游戏</button>
+                </div>
+                <div class="游戏2048容器">
+                    <div class="网格2048" id="网格2048">
+                        <!-- JS 动态生成 -->
+                    </div>
+                    <div class="游戏2048覆盖" id="2048覆盖" style="display:none;">
+                        <div class="2048覆盖内容">
+                            <div class="覆盖文字" id="2048覆盖文字">游戏结束</div>
+                            <button class="按钮 主要按钮" id="2048重来">再来一局</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 游戏7：五子棋 -->
+            <div class="游戏面板" id="游戏-五子棋" style="display:none;">
+                <div class="游戏说明">
+                    <p><strong>双人对弈</strong>，黑白轮流落子，先在横/竖/斜方向连成 <strong>5子</strong> 者胜！</p>
+                    <span class="计数器" id="五子棋状态">轮到：<strong>⚫ 黑方</strong></span>
+                    <span class="计数器">⚫ <strong id="黑方胜场">0</strong> 胜</span>
+                    <span class="计数器">⚪ <strong id="白方胜场">0</strong> 胜</span>
+                    <button class="按钮 小按钮" id="五子棋重置">🔄 新一局</button>
+                </div>
+                <div class="五子棋容器">
+                    <canvas id="五子棋画布" width="570" height="570"></canvas>
                 </div>
             </div>
         </div>
